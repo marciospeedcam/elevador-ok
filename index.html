@@ -1012,6 +1012,7 @@ function telaChamado(app){
         cc.appendChild(cp);
       }
       var stCob=c.cobranca.status, temComp=temFoto(c,"comprovante");
+      if(!temComp&&stCob==="pago") cc.appendChild(el("p","small","Este pagamento foi marcado como pago sem comprovante anexado."));
       blocoFotos(cc,c,"comprovante","Comprovante de pagamento",(p==="cliente"&&stCob!=="pago")||p==="empresa",true);
       if(p==="cliente"&&stCob!=="pago"){
         if(stCob==="analise"){
@@ -1055,7 +1056,7 @@ function telaChamado(app){
       bc.onclick=function(){ sheetCobranca(c); };
       cc.appendChild(bc);
     }
-    if(p==="cliente"&&c.cobranca&&c.cobranca.status!=="pago") app.insertBefore(cc,ps); else app.appendChild(cc);
+    if((p==="cliente"&&c.cobranca&&c.cobranca.status!=="pago")||(p==="empresa"&&c.cobranca)) app.insertBefore(cc,ps); else app.appendChild(cc);
   }
 
   /* orçamento do técnico — só empresa e o próprio técnico */
