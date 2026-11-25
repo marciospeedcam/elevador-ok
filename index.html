@@ -2059,7 +2059,10 @@ function recarregarDados(){
   if(!db||!uid||!vigiando)return;
   [["chamados","chamados"],["elevadores","elevadores"],["clientes","clientes"],["usuarios","usuarios"]].forEach(function(x){
     db.collection(x[0]).get({source:"server"}).then(function(r){
-      D[x[1]]=norm(r);
+      var novo=norm(r), mudou=true;
+      try{ mudou=JSON.stringify(novo)!==JSON.stringify(D[x[1]]); }catch(e){}
+      if(!mudou)return;
+      D[x[1]]=novo;
       if(x[1]==="usuarios"){ var m=D.usuarios.find(function(u){return u.id===uid;}); if(m)me=m; }
       render();
     }).catch(function(){});
