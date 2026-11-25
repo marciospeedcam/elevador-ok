@@ -95,15 +95,19 @@ textarea{min-height:84px;resize:vertical}
 .kv b{font-weight:600;color:var(--ink2);flex:none}
 .kv span{text-align:right}
 #nav{
-  display:flex;background:var(--card);border-bottom:1px solid var(--line);box-shadow:var(--sh);
+  display:flex;gap:7px;padding:8px 10px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;
+  background:var(--card);border-bottom:1px solid var(--line);box-shadow:var(--sh);
 }
+#nav::-webkit-scrollbar{display:none}
 #nav button{
-  flex:1;background:none;border:0;padding:9px 2px 8px;color:var(--ink3);
-  font:inherit;font-size:11px;font-weight:600;cursor:pointer;display:flex;
-  flex-direction:column;align-items:center;gap:3px;
+  flex:1 0 auto;display:flex;align-items:center;justify-content:center;gap:6px;
+  background:var(--brandsoft);color:var(--brand);border:0;border-radius:999px;
+  padding:9px 14px;font:inherit;font-size:13px;font-weight:650;cursor:pointer;white-space:nowrap;
 }
-#nav button svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:1.8}
-#nav button.on{color:var(--brand)}
+#nav button svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;flex:none}
+#nav button.on{background:var(--brand);color:#fff}
+@media (prefers-color-scheme: dark){#nav button.on{color:#0e1116}}
+#nav button.alerta:not(.on){background:var(--badsoft);color:var(--bad)}
 .empty{text-align:center;padding:34px 16px;color:var(--ink3)}
 .empty svg{width:46px;height:46px;stroke:currentColor;fill:none;stroke-width:1.5;opacity:.5;margin-bottom:10px}
 .fotos{display:grid;grid-template-columns:repeat(auto-fill,minmax(86px,1fr));gap:8px;margin-top:8px}
@@ -507,7 +511,7 @@ function pintaNav(){
       if(np) rot=it.l+" ("+np+")";
     }
     b.appendChild(el("span",null,rot));
-    if(it.s==="equipe"&&p==="empresa"&&D.usuarios.some(function(u){return !u.aprovado;})) b.style.color="var(--bad)";
+    if(it.s==="equipe"&&p==="empresa"&&D.usuarios.some(function(u){return !u.aprovado;})) b.classList.add("alerta");
     b.onclick=function(){ go(it.s); };
     n.appendChild(b);
   });
