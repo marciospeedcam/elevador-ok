@@ -189,6 +189,7 @@ details.mais[open]>summary::after{content:" \25B4"}
 "use strict";
 var FB_CONFIG={apiKey:"AIzaSyDbI-3Z_2z1qO0bXBotTxhl_ZzyraKZ2xA",authDomain:"elevador-ok.firebaseapp.com",projectId:"elevador-ok",storageBucket:"elevador-ok.firebasestorage.app",messagingSenderId:"476899431754",appId:"1:476899431754:web:1e0b0df448541fcbbe1db3"};
 var DONO_EMAIL="marciomusicadia@gmail.com";
+var VERSAO="202611251809";
 var auth=null, conta=null, carregouAuth=false, fotoCache={};
 /* ---------------- estado ---------------- */
 var db=null, user=null, assets=true, uid=null, isOwner=false, canWrite=true;
@@ -1939,6 +1940,7 @@ function telaPerfil(app){
 function botaoSair(pai){
   var c=el("div","card");
   c.appendChild(el("div","small","Conectado como "+((conta&&conta.email)||"")));
+  c.appendChild(el("div","small","Vers\u00e3o "+VERSAO));
   var b=el("button","btn gray","Sair da conta");
   b.onclick=function(){ auth.signOut().then(function(){ location.reload(); }); };
   c.appendChild(b); pai.appendChild(c);
@@ -2002,6 +2004,20 @@ function boot(){
   });
 }
 try{ if("serviceWorker" in navigator) window.addEventListener("load",function(){ navigator.serviceWorker.register("./sw.js").catch(function(){}); }); }catch(e){}
+function checarVersao(){
+  try{
+    fetch("./versao.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():"";}).then(function(t){
+      t=String(t||"").trim();
+      if(!t||t===VERSAO)return;
+      var ja=null; try{ ja=sessionStorage.getItem("elv_v"); }catch(e){}
+      if(ja===t)return;
+      try{ sessionStorage.setItem("elv_v",t); }catch(e){}
+      location.replace(location.pathname+"?v="+encodeURIComponent(t)+location.hash);
+    }).catch(function(){});
+  }catch(e){}
+}
+checarVersao(); setInterval(checarVersao,180000);
+document.addEventListener("visibilitychange",function(){ if(!document.hidden) checarVersao(); });
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",boot);
 else boot();
 </script>
