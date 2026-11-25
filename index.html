@@ -1461,6 +1461,22 @@ function telaPredios(app){
     c.appendChild(eb);
     app.appendChild(c);
   });
+  D.usuarios.filter(function(u){
+    return u.aprovado&&u.perfil==="cliente"&&!(u.clienteIds||[]).some(function(i){return !!cliente(i);});
+  }).forEach(function(u){
+    var c=el("div","card");
+    var sp=el("div","spread");
+    var w=el("div","grow");
+    w.appendChild(el("div",null,u.razao||nome(u)));
+    w.appendChild(el("div","small",[u.cnpj||u.cpf,u.telefone].filter(Boolean).join(" \u00b7 ")));
+    sp.appendChild(w); sp.appendChild(el("span","pill amarelo","Sem elevador"));
+    c.appendChild(sp);
+    c.appendChild(el("p","small","Cliente aprovado. Adicione o elevador dele para aparecer na tela dele."));
+    var ab=el("button","btn","Adicionar elevador");
+    ab.onclick=function(){ var cid=garantirCliente(u); render(); sheetElevador(cid,null); };
+    c.appendChild(ab);
+    app.appendChild(c);
+  });
   var b=el("button","btn","Cadastrar novo cliente");
   b.onclick=function(){ sheetCliente(null); };
   app.appendChild(b);
@@ -1681,7 +1697,11 @@ function cardUsuario(u,pendente){
       var o=Object.assign({},u,{aprovado:true,aprovadoEm:Date.now()});
       var i=D.usuarios.findIndex(function(x){return x.id===u.id;}); if(i>=0)D.usuarios[i]=o;
       save("usuarios/"+u.id,o); render(); toast("Aprovado");
-      if(o.perfil==="cliente") sheetLigarCliente(o);
+      if(o.perfil==="cliente"){
+        var cid=garantirCliente(o);
+        toast("Aprovado. Agora adicione o elevador dele.");
+        go("predios"); sheetElevador(cid,null);
+      }
     };
     c.appendChild(ab);
   } else {
@@ -1694,6 +1714,18 @@ function cardUsuario(u,pendente){
     c.appendChild(rb);
   }
   return c;
+}
+function garantirCliente(u){
+  var ids=(u.clienteIds||[]).filter(function(i){return !!cliente(i);});
+  if(ids.length) return ids[0];
+  var id=uuid();
+  var c={id:id,nome:u.razao||u.nome||"Cliente",cnpj:u.cnpj||u.cpf||"",endereco:"",cep:"",bairro:"",
+    responsavel:u.nome||"",telefone:u.telefone||"",garantiaTipo:"nenhuma",garantiaPecas:"",criado:Date.now(),donoUid:u.id};
+  D.clientes.push(c); save("clientes/"+id,c);
+  var o=Object.assign({},u,{clienteIds:ids.concat([id])});
+  var j=D.usuarios.findIndex(function(x){return x.id===u.id;}); if(j>=0)D.usuarios[j]=o;
+  save("usuarios/"+u.id,o);
+  return id;
 }
 function sheetLigarCliente(u){
   sheet("Prédios de "+nome(u),function(p,close){
