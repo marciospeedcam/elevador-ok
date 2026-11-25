@@ -179,6 +179,10 @@ details.mais[open]>summary::after{content:" \25B4"}
 .trilha button.agora{background:var(--brand);color:#fff}
 @media (prefers-color-scheme: dark){.trilha button.agora{color:#0e1116}}
 .trilha button[disabled]{opacity:1}
+.trilha.duas button{border-radius:14px;padding:11px 8px;font-size:13px;line-height:1.25}
+.trilha button.bom{background:var(--ok);color:#fff}
+.trilha button.ruim{background:var(--bad);color:#fff}
+@media (prefers-color-scheme: dark){.trilha button.bom,.trilha button.ruim{color:#0e1116}}
 .qrbox{display:flex;justify-content:center;padding:12px;background:#fff;border-radius:12px;margin:10px 0}
 .qrbox canvas,.qrbox img{max-width:210px;height:auto;display:block}
 </style>
@@ -195,7 +199,7 @@ details.mais[open]>summary::after{content:" \25B4"}
 "use strict";
 var FB_CONFIG={apiKey:"AIzaSyDbI-3Z_2z1qO0bXBotTxhl_ZzyraKZ2xA",authDomain:"elevador-ok.firebaseapp.com",projectId:"elevador-ok",storageBucket:"elevador-ok.firebasestorage.app",messagingSenderId:"476899431754",appId:"1:476899431754:web:1e0b0df448541fcbbe1db3"};
 var DONO_EMAIL="marciomusicadia@gmail.com";
-var VERSAO="202611251830";
+var VERSAO="202611251832";
 var auth=null, conta=null, carregouAuth=false, fotoCache={};
 /* ---------------- estado ---------------- */
 var db=null, user=null, assets=true, uid=null, isOwner=false, canWrite=true;
@@ -907,6 +911,25 @@ function telaChamado(app){
   blocoFotos(fc,c,"problema","Problema encontrado",podeFoto);
   blocoFotos(fc,c,"instalada","Peça nova instalada",podeFoto);
   blocoFotos(fc,c,"retirada","Peça retirada",podeFoto);
+  if((c.pecas||[]).length||temFoto(c,"instalada")||c.resultadoPeca){
+    fc.appendChild(el("label",null,"A pe\u00e7a nova funcionou?"));
+    var tr2=el("div","trilha duas");
+    [["ok","Pe\u00e7a funcionou","bom"],["trocar","N\u00e3o funcionou, precisa trocar","ruim"]].forEach(function(x){
+      var rb=el("button",c.resultadoPeca===x[0]?x[2]:"",x[1]);
+      if(podeFoto){
+        rb.onclick=function(){
+          if(c.resultadoPeca===x[0])return;
+          if(x[0]==="ok") upChamado(c,{resultadoPeca:"ok"},"Pe\u00e7a instalada funcionou");
+          else upChamado(c,{resultadoPeca:"trocar",resolvido:false,status:c.checkout?"aguardando_peca":c.status},"Pe\u00e7a instalada n\u00e3o funcionou: precisa trocar");
+          toast(x[0]==="ok"?"Registrado: funcionou":"Registrado: precisa trocar");
+        };
+      } else rb.disabled=true;
+      tr2.appendChild(rb);
+    });
+    fc.appendChild(tr2);
+    if(c.resultadoPeca==="trocar") fc.appendChild(el("div","banner bad","A pe\u00e7a instalada n\u00e3o funcionou. \u00c9 preciso pedir outra pe\u00e7a."));
+    else if(!c.resultadoPeca&&!podeFoto) fc.appendChild(el("p","small","O t\u00e9cnico ainda n\u00e3o informou."));
+  }
   app.appendChild(fc);
 
   /* observações */
@@ -1137,7 +1160,7 @@ function telaChamado(app){
     if(c.status==="peca_chegou") acao("Marcar data de retorno","sec",function(){ sheetAgendar(c,true); });
   }
   if((p==="empresa"||(p==="tecnico"&&c.tecnicoUid===uid))&&c.checkout&&!c.resolvido
-     &&["aguardando_peca","peca_chegou"].indexOf(c.status)>=0&&!temPecaPendente(c)){
+     &&["aguardando_peca","peca_chegou"].indexOf(c.status)>=0&&!temPecaPendente(c)&&c.resultadoPeca!=="trocar"){
     acao("Marcar servi\u00e7o como conclu\u00eddo","ok",function(){
       var ft=[];
       if((c.pecas||[]).length){
@@ -1242,7 +1265,7 @@ function sheetPedirPeca(c){
       var fotos=(c.fotos||[]);
       if(fotoId) fotos=fotos.concat([{id:fotoId,tipo:"problema",ts:Date.now(),quem:uid}]);
       close();
-      upChamado(c,{pecas:pecas,fotos:fotos,status:"aguardando_peca"},"Peça pedida: "+nm.value.trim());
+      upChamado(c,{pecas:pecas,fotos:fotos,status:"aguardando_peca",resultadoPeca:null,resolvido:false},"Peça pedida: "+nm.value.trim());
       toast("Pedido enviado");
     };
     p.appendChild(b);
@@ -1337,7 +1360,9 @@ function sheetCheckout(c){
     if(pecaTrocada){
       if(!temFoto(c,"instalada"))falta.push("foto da peça nova instalada");
       if(!temFoto(c,"retirada"))falta.push("foto da peça retirada");
+      if(!c.resultadoPeca)falta.push("dizer se a pe\u00e7a nova funcionou");
     }
+    if(c.resultadoPeca==="trocar")falta.push("a pe\u00e7a n\u00e3o funcionou (pe\u00e7a outra antes de concluir)");
     if(falta.length){
       p.appendChild(el("div","banner warn","Falta: "+falta.join(", ")+"."));
     }
@@ -1345,7 +1370,7 @@ function sheetCheckout(c){
     var ob=campo(p,"Resumo do que foi feito","area",c.obs||"","");
     var b=el("button","btn ok","Confirmar check-out");
     b.onclick=function(){
-      if(falta.length&&res.value==="resolvido")return toast("Tire as fotos que faltam antes de encerrar.");
+      if(falta.length&&res.value==="resolvido")return toast("Resolva o que falta antes de encerrar como resolvido.");
       var ts=Date.now();
       var min=Math.max(1,Math.round((ts-(c.checkin?c.checkin.ts:ts))/60000));
       var temPecas=(c.pecas||[]).length>0;
