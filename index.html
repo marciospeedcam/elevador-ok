@@ -283,12 +283,17 @@ function save(path,obj){
 function upChamado(c,extra,log){
   var o=Object.assign({},c,extra||{});
   o.hist=(c.hist||[]).slice();
-  if(log) o.hist.push({ts:Date.now(),quem:papel(),texto:log});
+  var ent=log?{ts:Date.now(),quem:papel(),texto:log}:null;
+  if(ent) o.hist.push(ent);
   o.atualizado=Date.now();
   var i=D.chamados.findIndex(function(x){return x.id===o.id;});
   if(i>=0)D.chamados[i]=o; else D.chamados.push(o);
   render();
-  return save("chamados/"+o.id,o);
+  var up=Object.assign({},extra||{},{atualizado:o.atualizado});
+  try{ if(ent) up.hist=firebase.firestore.FieldValue.arrayUnion(ent); }catch(e){ up.hist=o.hist; }
+  return db.doc("chamados/"+o.id).update(up).catch(function(){
+    return save("chamados/"+o.id,o);
+  });
 }
 
 /* ---------------- papeis ---------------- */
@@ -830,7 +835,7 @@ function telaChamado(app){
     {l:"Técnico designado", ok:!!c.tecnicoUid},
     {l:"Visita agendada", ok:!!c.agendamento},
     {l:"Check-in no local", ok:!!c.checkin},
-    {l:"Serviço concluído", ok:["concluido","aguardando_pagamento","pago"].indexOf(c.status)>=0},
+    {l:"Serviço concluído", ok:!!c.resolvido||["concluido","aguardando_pagamento","pago"].indexOf(c.status)>=0},
     {l:"Pago", ok:c.status==="pago"}
   ];
   var ps=el("div","card");
@@ -916,7 +921,7 @@ function telaChamado(app){
     var sub=[];
     if(pe.previsao)sub.push("Previsão: "+dia(pe.previsao));
     if(pe.garantia)sub.push("Em garantia");
-    if(pe.valor)sub.push(money(pe.valor));
+    if(pe.valor&&p!=="tecnico")sub.push(money(pe.valor));
     if(sub.length)w.appendChild(el("div","small",sub.join(" · ")));
     if(pe.obs)w.appendChild(el("div","small",pe.obs));
     sp2.appendChild(w);
@@ -944,7 +949,7 @@ function telaChamado(app){
   app.appendChild(pc);
 
   /* orçamento ao cliente */
-  if(c.orcamento||p==="empresa"){
+  if(p!=="tecnico"&&(c.orcamento||p==="empresa")){
     var qc=el("div","card");
     qc.appendChild(el("h3",null,"Orçamento para o cliente"));
     if(c.orcamento){
@@ -977,11 +982,11 @@ function telaChamado(app){
       bo.onclick=function(){ sheetOrcamento(c); };
       qc.appendChild(bo);
     }
-    app.appendChild(qc);
+    if(p==="cliente"&&c.orcamento&&c.orcamento.status==="pendente") app.insertBefore(qc,ps); else app.appendChild(qc);
   }
 
   /* cobrança */
-  if(c.cobranca||(p==="empresa"&&c.checkout)){
+  if(p!=="tecnico"&&(c.cobranca||(p==="empresa"&&c.checkout))){
     var cc=el("div","card");
     cc.appendChild(el("h3",null,"Cobrança"));
     if(c.cobranca){
@@ -1013,7 +1018,7 @@ function telaChamado(app){
       bc.onclick=function(){ sheetCobranca(c); };
       cc.appendChild(bc);
     }
-    app.appendChild(cc);
+    if(p==="cliente"&&c.cobranca&&c.cobranca.status!=="pago") app.insertBefore(cc,ps); else app.appendChild(cc);
   }
 
   /* orçamento do técnico — só empresa e o próprio técnico */
@@ -1079,7 +1084,15 @@ function telaChamado(app){
   if((c.hist||[]).length){
     var hc=el("div","card");
     hc.appendChild(el("h3",null,"Histórico"));
-    c.hist.slice().reverse().forEach(function(x){
+    c.hist.slice().reverse().filter(function(x){
+      var t=String(x.texto||"");
+      if(p==="cliente"&&/^T\u00e9cnico (enviou|pago)/.test(t)) return false;
+      return true;
+    }).map(function(x){
+      var t=String(x.texto||"");
+      if(p==="tecnico"&&!/^T\u00e9cnico /.test(t)) t=t.replace(/(:| de)?\s*R\$\s*[\d.,]+/g,"");
+      return {ts:x.ts,texto:t};
+    }).forEach(function(x){
       var r=el("div","kv");
       r.appendChild(el("b",null,dt(x.ts)));
       r.appendChild(el("span",null,x.texto));
@@ -1260,7 +1273,7 @@ function sheetCheckout(c){
       var ts=Date.now();
       var min=Math.max(1,Math.round((ts-(c.checkin?c.checkin.ts:ts))/60000));
       var novo=res.value==="resolvido"?"concluido":"aguardando_peca";
-      var extra={checkout:{ts:ts},tempoMin:min,obs:ob.value,status:novo};
+      var extra={checkout:{ts:ts},tempoMin:min,obs:ob.value,status:novo,resolvido:res.value==="resolvido"};
       if(res.value==="resolvido"){
         var e=elevador(c.elevadorId);
         if(e&&c.tipo==="preventivo"){
