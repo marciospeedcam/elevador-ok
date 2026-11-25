@@ -1,0 +1,1922 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<title>Elevador OK</title>
+<link rel="manifest" href="./manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Elevador OK">
+<meta name="description" content="Chamados, check-in no local, peças, orçamento e pagamento da manutenção de elevadores.">
+<link rel="icon" href="./icone-192.png" sizes="192x192">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%230b4f9e'/%3E%3Crect x='56' y='40' width='68' height='100' rx='8' fill='none' stroke='white' stroke-width='9'/%3E%3Cpath d='M90 62 l16 20 H74z M90 118 l-16-20 h32z' fill='white'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#f4f6fa; --card:#ffffff; --ink:#111827; --ink2:#5b6475; --ink3:#8b93a3;
+  --line:#e3e7ee; --brand:#0b4f9e; --brand2:#1668d0; --brandsoft:#e8f0fb;
+  --ok:#0f7a4a; --oksoft:#e3f5ea; --warn:#8a5a00; --warnsoft:#fdf1da;
+  --bad:#b32020; --badsoft:#fdeaea; --neutral:#4b5563; --neutralsoft:#eef0f3;
+  --r:14px; --sh:0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.08);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0e1116; --card:#161b22; --ink:#e9edf3; --ink2:#a8b1c0; --ink3:#7c8695;
+    --line:#262d38; --brand:#4a9bf0; --brand2:#2f87e8; --brandsoft:#13243a;
+    --ok:#5fd398; --oksoft:#102a1f; --warn:#f0bf6a; --warnsoft:#2c2211;
+    --bad:#f08a8a; --badsoft:#301616; --neutral:#aab2c0; --neutralsoft:#1e242e;
+    --sh:0 1px 2px rgba(0,0,0,.4);
+  }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  padding-bottom:calc(24px + env(safe-area-inset-bottom));
+  overscroll-behavior-y:contain;
+}
+#hd{position:sticky;top:0;z-index:40}
+#top{
+  background:var(--brand); color:#fff;
+  padding:calc(10px + env(safe-area-inset-top)) 14px 10px;
+  display:flex; align-items:center; gap:10px;
+}
+#top .t{font-weight:650;font-size:17px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#top .sub{font-size:12px;opacity:.85;font-weight:400}
+#top button{
+  background:rgba(255,255,255,.16); color:#fff; border:0; border-radius:10px;
+  padding:7px 11px; font-size:13px; font-weight:600;
+}
+#back{background:transparent!important;padding:6px 4px!important;font-size:22px!important;line-height:1}
+main{padding:14px 14px 20px; max-width:720px; margin:0 auto}
+h2{font-size:19px;margin:18px 0 10px;font-weight:650}
+h2:first-child{margin-top:2px}
+h3{font-size:15px;margin:16px 0 8px;font-weight:650;color:var(--ink2)}
+p{margin:8px 0}
+.muted{color:var(--ink2);font-size:14px}
+.small{font-size:13px;color:var(--ink3)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin:10px 0;box-shadow:var(--sh)}
+.card.tight{padding:12px}
+a.card,button.card{display:block;width:100%;text-align:left;cursor:pointer;color:inherit;text-decoration:none;font:inherit}
+.row{display:flex;gap:10px;align-items:center}
+.row.wrap{flex-wrap:wrap}
+.spread{display:flex;gap:10px;align-items:center;justify-content:space-between}
+.grow{flex:1;min-width:0}
+.pill{display:inline-block;padding:3px 9px;border-radius:999px;font-size:12px;font-weight:650;white-space:nowrap}
+.pill.azul{background:var(--brandsoft);color:var(--brand)}
+.pill.verde{background:var(--oksoft);color:var(--ok)}
+.pill.amarelo{background:var(--warnsoft);color:var(--warn)}
+.pill.vermelho{background:var(--badsoft);color:var(--bad)}
+.pill.cinza{background:var(--neutralsoft);color:var(--neutral)}
+label{display:block;font-size:13px;font-weight:600;color:var(--ink2);margin:12px 0 5px}
+input,select,textarea{
+  width:100%; padding:12px; font:inherit; color:var(--ink);
+  background:var(--bg); border:1px solid var(--line); border-radius:11px;
+}
+@media (prefers-color-scheme: dark){input,select,textarea{background:#0b0e13}}
+input:focus,select,textarea:focus{outline:2px solid var(--brand2);outline-offset:-1px}
+textarea{min-height:84px;resize:vertical}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  padding:13px 16px;border:0;border-radius:12px;font:inherit;font-weight:650;
+  background:var(--brand);color:#fff;cursor:pointer;width:100%;margin-top:12px;
+}
+.btn.sec{background:var(--brandsoft);color:var(--brand)}
+.btn.gray{background:var(--neutralsoft);color:var(--ink)}
+.btn.danger{background:var(--badsoft);color:var(--bad)}
+.btn.ok{background:var(--ok);color:#fff}
+.btn.sm{padding:9px 13px;font-size:14px;width:auto;margin-top:0}
+.btn[disabled]{opacity:.5;pointer-events:none}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px}
+.kv:last-child{border-bottom:0}
+.kv b{font-weight:600;color:var(--ink2);flex:none}
+.kv span{text-align:right}
+#nav{
+  display:flex;background:var(--card);border-bottom:1px solid var(--line);box-shadow:var(--sh);
+}
+#nav button{
+  flex:1;background:none;border:0;padding:9px 2px 8px;color:var(--ink3);
+  font:inherit;font-size:11px;font-weight:600;cursor:pointer;display:flex;
+  flex-direction:column;align-items:center;gap:3px;
+}
+#nav button svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:1.8}
+#nav button.on{color:var(--brand)}
+.empty{text-align:center;padding:34px 16px;color:var(--ink3)}
+.empty svg{width:46px;height:46px;stroke:currentColor;fill:none;stroke-width:1.5;opacity:.5;margin-bottom:10px}
+.fotos{display:grid;grid-template-columns:repeat(auto-fill,minmax(86px,1fr));gap:8px;margin-top:8px}
+.fotos img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;border:1px solid var(--line);background:var(--bg)}
+.fotoadd{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  aspect-ratio:1;border:1.5px dashed var(--line);border-radius:10px;color:var(--ink3);
+  font-size:11px;font-weight:600;cursor:pointer;text-align:center;padding:4px;background:none;
+}
+.fotoadd svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.7}
+.timer{font-variant-numeric:tabular-nums;font-size:30px;font-weight:700;letter-spacing:-.5px}
+.codigo{
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:26px;font-weight:700;
+  letter-spacing:3px;text-align:center;padding:14px;background:var(--bg);
+  border:1px solid var(--line);border-radius:12px;
+}
+.step{display:flex;gap:11px;padding:11px 0;border-bottom:1px solid var(--line)}
+.step:last-child{border-bottom:0}
+.step .n{
+  flex:none;width:25px;height:25px;border-radius:999px;background:var(--neutralsoft);
+  color:var(--ink2);display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;
+}
+.step.done .n{background:var(--ok);color:#fff}
+.step.now .n{background:var(--brand);color:#fff}
+.banner{padding:11px 13px;border-radius:12px;font-size:14px;margin:10px 0;font-weight:500}
+.banner.warn{background:var(--warnsoft);color:var(--warn)}
+.banner.bad{background:var(--badsoft);color:var(--bad)}
+.banner.ok{background:var(--oksoft);color:var(--ok)}
+.banner.info{background:var(--brandsoft);color:var(--brand)}
+.tabs{display:flex;gap:6px;overflow-x:auto;margin:4px 0 2px;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+.tabs button{
+  flex:none;padding:7px 13px;border-radius:999px;border:1px solid var(--line);
+  background:var(--card);color:var(--ink2);font:inherit;font-size:13px;font-weight:600;cursor:pointer;
+}
+.tabs button.on{background:var(--brand);border-color:var(--brand);color:#fff}
+#sheet{
+  position:fixed;inset:0;z-index:90;background:rgba(10,14,20,.5);
+  display:flex;align-items:flex-end;justify-content:center;
+}
+#sheet.hide{display:none}
+#sheet .inner{
+  background:var(--card);width:100%;max-width:720px;border-radius:18px 18px 0 0;
+  padding:18px 16px calc(20px + env(safe-area-inset-bottom));
+  max-height:88vh;overflow:auto;
+}
+#sheet h3{margin-top:0;color:var(--ink);font-size:17px}
+#toast{
+  position:fixed;left:50%;transform:translateX(-50%);bottom:calc(28px + env(safe-area-inset-bottom));
+  z-index:99;background:#111827;color:#fff;padding:11px 16px;border-radius:12px;
+  font-size:14px;font-weight:600;max-width:88%;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.3);
+}
+#toast.hide{display:none}
+.loading{text-align:center;padding:50px 16px;color:var(--ink3)}
+.spin{width:26px;height:26px;border:3px solid var(--line);border-top-color:var(--brand);border-radius:50%;margin:0 auto 12px;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+hr{border:0;border-top:1px solid var(--line);margin:16px 0}
+details.mais{border:1px solid var(--line);border-radius:12px;margin-top:14px;background:var(--bg)}
+@media (prefers-color-scheme: dark){details.mais{background:#0b0e13}}
+details.mais>summary{padding:12px;font-size:14px;font-weight:650;color:var(--brand);cursor:pointer;list-style:none}
+details.mais>summary::-webkit-details-marker{display:none}
+details.mais>summary::after{content:" \25BE";font-size:11px}
+details.mais[open]>summary::after{content:" \25B4"}
+.maisin{padding:0 12px 12px}
+.maisin label:first-child{margin-top:4px}
+.qrbox{display:flex;justify-content:center;padding:12px;background:#fff;border-radius:12px;margin:10px 0}
+.qrbox canvas,.qrbox img{max-width:210px;height:auto;display:block}
+</style>
+</head>
+<body>
+<header id="hd"><div id="top"><div class="t">Elevador OK</div></div><div id="nav" style="display:none"></div></header>
+<main id="app"><div class="loading"><div class="spin"></div>Carregando…</div></main>
+<div id="sheet" class="hide"><div class="inner"></div></div>
+<div id="toast" class="hide"></div>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+"use strict";
+var FB_CONFIG={apiKey:"AIzaSyDbI-3Z_2z1qO0bXBotTxhl_ZzyraKZ2xA",authDomain:"elevador-ok.firebaseapp.com",projectId:"elevador-ok",storageBucket:"elevador-ok.firebasestorage.app",messagingSenderId:"476899431754",appId:"1:476899431754:web:1e0b0df448541fcbbe1db3"};
+var DONO_EMAIL="marciomusicadia@gmail.com";
+var auth=null, conta=null, carregouAuth=false, fotoCache={};
+/* ---------------- estado ---------------- */
+var db=null, user=null, assets=true, uid=null, isOwner=false, canWrite=true;
+var D={config:null, usuarios:[], clientes:[], elevadores:[], chamados:[]};
+var ready={usuarios:false, clientes:false, elevadores:false, chamados:false, config:false};
+var me=null;            // doc do usuario logado
+var verComo=null;       // empresa pode simular perfil
+var route={s:"", id:""};
+var timerH=null;
+
+/* ---------------- utilidades ---------------- */
+function $(s,r){return (r||document).querySelector(s);}
+function el(t,c,x){var e=document.createElement(t); if(c)e.className=c; if(x!=null)e.textContent=x; return e;}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(m){return({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[m];});}
+function uuid(){return "x"+Date.now().toString(36)+Math.random().toString(36).slice(2,8);}
+function codigoNovo(){var a="ABCDEFGHJKLMNPQRSTUVWXYZ23456789",s="";for(var i=0;i<6;i++)s+=a[Math.floor(Math.random()*a.length)];return s;}
+function toast(m){var t=$("#toast");t.textContent=m;t.classList.remove("hide");clearTimeout(toast._h);toast._h=setTimeout(function(){t.classList.add("hide");},2600);}
+function money(v){var n=Number(v);if(!isFinite(n))return "—";return n.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});}
+function dnum(v){var n=String(v==null?"":v).replace(/[^\d,.-]/g,"").replace(/\./g,"").replace(",",".");return Number(n);}
+function dt(ts){if(!ts)return "—";var d=new Date(ts);return d.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"2-digit"})+" "+d.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});}
+function dia(ts){if(!ts)return "—";var d=new Date(ts);return d.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric"});}
+function hoje(){var d=new Date();return d.toISOString().slice(0,10);}
+function addMeses(iso,m){if(!iso)return null;var d=new Date(iso+"T12:00:00");d.setMonth(d.getMonth()+Number(m||0));return d.toISOString().slice(0,10);}
+function diasAte(iso){if(!iso)return null;var a=new Date(iso+"T12:00:00"),b=new Date();b.setHours(12,0,0,0);return Math.round((a-b)/86400000);}
+function dur(ms){var s=Math.max(0,Math.floor(ms/1000)),h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;
+  return (h?String(h).padStart(2,"0")+":":"")+String(m).padStart(2,"0")+":"+String(x).padStart(2,"0");}
+function durTexto(min){min=Math.round(Number(min)||0);var h=Math.floor(min/60),m=min%60;
+  return h? (h+"h"+(m?" "+m+"min":"")) : (m+"min");}
+function dist(a,b,c,d){ // metros
+  if(a==null||b==null||c==null||d==null)return null;
+  var R=6371000,p=Math.PI/180,x=(c-a)*p,y=(d-b)*p;
+  var q=Math.sin(x/2)*Math.sin(x/2)+Math.cos(a*p)*Math.cos(c*p)*Math.sin(y/2)*Math.sin(y/2);
+  return Math.round(R*2*Math.atan2(Math.sqrt(q),Math.sqrt(1-q)));
+}
+function gps(){
+  return new Promise(function(res){
+    if(!navigator.geolocation)return res(null);
+    navigator.geolocation.getCurrentPosition(
+      function(p){res({lat:p.coords.latitude,lng:p.coords.longitude,acc:Math.round(p.coords.accuracy)});},
+      function(){res(null);},
+      {enableHighAccuracy:true,timeout:12000,maximumAge:0});
+  });
+}
+
+/* ---------------- camada de dados ---------------- */
+function norm(res){
+  if(!res)return [];
+  var arr = Array.isArray(res)?res:(res.docs||res.items||res.data||[]);
+  if(!Array.isArray(arr))return [];
+  return arr.map(function(d){
+    if(d&&typeof d==="object"&&("id" in d)&&("data" in d)){
+      var v=(typeof d.data==="function")?d.data():d.data;
+      var o=Object.assign({},v||{}); o.id=d.id; return o;
+    }
+    return d;
+  }).filter(Boolean);
+}
+function one(snap){
+  if(!snap)return null;
+  if(typeof snap.data==="function"){ if(snap.exists===false)return null; return snap.data()||null; }
+  if("exists" in snap && !snap.exists) return null;
+  if("data" in snap) return snap.data||null;
+  return snap;
+}
+function watchColl(path,cb){
+  var done=false;
+  try{
+    var c=db.collection(path);
+    if(c&&typeof c.onSnapshot==="function"){ c.onSnapshot(function(r){done=true;cb(norm(r));}); }
+  }catch(e){}
+  var tick=function(){ db.collection(path).get().then(function(r){cb(norm(r));}).catch(function(){cb([]);}); };
+  tick();
+  setInterval(function(){ if(!done) tick(); },10000);
+}
+function watchDoc(path,cb){
+  var done=false;
+  try{
+    var d=db.doc(path);
+    if(d&&typeof d.onSnapshot==="function"){ d.onSnapshot(function(s){done=true;cb(one(s));}); }
+  }catch(e){}
+  var tick=function(){ db.doc(path).get().then(function(s){cb(one(s));}).catch(function(){cb(null);}); };
+  tick();
+  setInterval(function(){ if(!done) tick(); },15000);
+}
+function save(path,obj){
+  if(!db)return Promise.reject(new Error("sem banco"));
+  return db.doc(path).set(obj).catch(function(e){
+    toast("Não deu pra salvar. Tente de novo.");
+    throw e;
+  });
+}
+function upChamado(c,extra,log){
+  var o=Object.assign({},c,extra||{});
+  o.hist=(c.hist||[]).slice();
+  if(log) o.hist.push({ts:Date.now(),quem:papel(),texto:log});
+  o.atualizado=Date.now();
+  var i=D.chamados.findIndex(function(x){return x.id===o.id;});
+  if(i>=0)D.chamados[i]=o; else D.chamados.push(o);
+  render();
+  return save("chamados/"+o.id,o);
+}
+
+/* ---------------- papeis ---------------- */
+function papel(){
+  if(verComo) return verComo;
+  if(isOwner) return "empresa";
+  return (me&&me.perfil)||"";
+}
+function aprovado(){ return isOwner || (me&&me.aprovado===true); }
+function nome(u){ if(!u)return "—"; return u.nome||"Sem nome"; }
+function usuario(id){ return D.usuarios.find(function(u){return u.id===id;})||null; }
+function cliente(id){ return D.clientes.find(function(c){return c.id===id;})||null; }
+function elevador(id){ return D.elevadores.find(function(e){return e.id===id;})||null; }
+function chamado(id){ return D.chamados.find(function(c){return c.id===id;})||null; }
+function tecnicos(){ return D.usuarios.filter(function(u){return u.perfil==="tecnico"&&u.aprovado;}); }
+function meusElevadores(){
+  var p=papel();
+  if(p==="empresa")return D.elevadores;
+  if(p==="tecnico")return D.elevadores.filter(function(e){return e.tecnicoUid===uid;});
+  var ids=(me&&me.clienteIds)||[];
+  return D.elevadores.filter(function(e){return ids.indexOf(e.clienteId)>=0;});
+}
+function meusChamados(){
+  var p=papel();
+  var cs=D.chamados.slice().sort(function(a,b){return (b.criado||0)-(a.criado||0);});
+  if(p==="empresa")return cs;
+  if(p==="tecnico")return cs.filter(function(c){return c.tecnicoUid===uid;});
+  var ids=(me&&me.clienteIds)||[];
+  return cs.filter(function(c){return ids.indexOf(c.clienteId)>=0;});
+}
+
+/* ---------------- status ---------------- */
+var STATUS={
+  aberto:{l:"Aberto",c:"azul"},
+  designado:{l:"Técnico designado",c:"azul"},
+  agendado:{l:"Visita agendada",c:"azul"},
+  nao_compareceu:{l:"Não compareceu",c:"vermelho"},
+  em_atendimento:{l:"Em atendimento",c:"verde"},
+  aguardando_orcamento:{l:"Aguardando orçamento",c:"amarelo"},
+  aguardando_peca:{l:"Aguardando peça",c:"amarelo"},
+  peca_chegou:{l:"Peça chegou",c:"verde"},
+  concluido:{l:"Concluído",c:"verde"},
+  aguardando_pagamento:{l:"Aguardando pagamento",c:"amarelo"},
+  pago:{l:"Pago",c:"cinza"}
+};
+function stPill(s){var x=STATUS[s]||{l:s||"—",c:"cinza"};var e=el("span","pill "+x.c,x.l);return e;}
+function atrasado(c){
+  if(!c.agendamento)return false;
+  if(c.checkin)return false;
+  if(["concluido","aguardando_pagamento","pago"].indexOf(c.status)>=0)return false;
+  return new Date(c.agendamento).getTime() < Date.now()-3*3600000;
+}
+
+/* ---------------- manutenção periódica ---------------- */
+function proximaManut(e){
+  if(!e||!e.ultimaManut)return null;
+  return addMeses(e.ultimaManut, e.validadeMeses||12);
+}
+function manutStatus(e){
+  var p=proximaManut(e);
+  if(!p)return {txt:"Sem data de manutenção",c:"cinza",d:null,prox:null};
+  var d=diasAte(p), av=Number(e.avisoDias||30);
+  if(d<0)return {txt:"Vencida há "+Math.abs(d)+" dia"+(Math.abs(d)===1?"":"s"),c:"vermelho",d:d,prox:p};
+  if(d<=av)return {txt:"Vence em "+d+" dia"+(d===1?"":"s"),c:"amarelo",d:d,prox:p};
+  return {txt:"Em dia · "+dia(p),c:"verde",d:d,prox:p};
+}
+function aVencer(){
+  return meusElevadores().map(function(e){return {e:e,m:manutStatus(e)};})
+    .filter(function(x){return x.m.d!=null && x.m.d<=Number(x.e.avisoDias||30);})
+    .sort(function(a,b){return a.m.d-b.m.d;});
+}
+
+/* ---------------- sheet / modal ---------------- */
+function sheet(titulo,build){
+  var s=$("#sheet"), inner=$(".inner",s);
+  inner.innerHTML="";
+  var h=el("h3",null,titulo); inner.appendChild(h);
+  build(inner, function(){ s.classList.add("hide"); });
+  var b=el("button","btn gray","Fechar");
+  b.onclick=function(){s.classList.add("hide");};
+  inner.appendChild(b);
+  s.classList.remove("hide");
+  s.onclick=function(ev){ if(ev.target===s) s.classList.add("hide"); };
+}
+function campo(pai,rot,tipo,val,ph){
+  pai.appendChild(el("label",null,rot));
+  var i=document.createElement(tipo==="area"?"textarea":(tipo==="select"?"select":"input"));
+  if(tipo!=="area"&&tipo!=="select")i.type=tipo||"text";
+  if(ph)i.placeholder=ph;
+  if(val!=null)i.value=val;
+  pai.appendChild(i); return i;
+}
+function mais(pai,rot){
+  var d=document.createElement("details"); d.className="mais";
+  var su=document.createElement("summary"); su.textContent=rot; d.appendChild(su);
+  var w=el("div","maisin"); d.appendChild(w); pai.appendChild(d); return w;
+}
+function selec(pai,rot,opcoes,val){
+  pai.appendChild(el("label",null,rot));
+  var s=document.createElement("select");
+  opcoes.forEach(function(o){ var op=el("option",null,o.l); op.value=o.v; s.appendChild(op); });
+  if(val!=null)s.value=val;
+  pai.appendChild(s); return s;
+}
+
+/* ---------------- fotos ---------------- */
+function picker(onFile){
+  var i=document.createElement("input");
+  i.type="file"; i.accept="image/*"; i.setAttribute("capture","environment");
+  i.style.display="none";
+  i.onchange=function(){ if(i.files&&i.files[0]) onFile(i.files[0]); };
+  document.body.appendChild(i); i.click();
+  setTimeout(function(){ i.remove(); },60000);
+}
+function comprimir(file){
+  return new Promise(function(res,rej){
+    var im=new Image(), u=URL.createObjectURL(file);
+    im.onload=function(){
+      var mx=1000, w=im.width, h=im.height, k=Math.min(1,mx/Math.max(w,h));
+      var cv=document.createElement("canvas"); cv.width=Math.round(w*k); cv.height=Math.round(h*k);
+      cv.getContext("2d").drawImage(im,0,0,cv.width,cv.height);
+      URL.revokeObjectURL(u);
+      var q=0.62, d=cv.toDataURL("image/jpeg",q);
+      while(d.length>700000&&q>0.25){ q-=0.12; d=cv.toDataURL("image/jpeg",q); }
+      res(d);
+    };
+    im.onerror=function(){ URL.revokeObjectURL(u); rej(new Error("imagem")); };
+    im.src=u;
+  });
+}
+function subirFoto(file){
+  return comprimir(file).then(function(d){
+    var id=uuid(); fotoCache[id]=d;
+    return db.doc("fotos/"+id).set({d:d,ts:Date.now(),quem:uid}).then(function(){ return id; });
+  });
+}
+function setFoto(im,id){
+  if(fotoCache[id]){ im.src=fotoCache[id]; return; }
+  db.doc("fotos/"+id).get().then(function(sn){ var v=one(sn); if(v&&v.d){ fotoCache[id]=v.d; im.src=v.d; } }).catch(function(){});
+}
+function verFoto(id){
+  sheet("Foto",function(p){
+    var im=document.createElement("img"); im.alt="Foto"; im.style.width="100%"; im.style.borderRadius="12px";
+    setFoto(im,id); p.appendChild(im);
+  });
+}
+function blocoFotos(pai,c,tipo,rot,podeAdd){
+  var w=el("div"); pai.appendChild(w);
+  w.appendChild(el("label",null,rot));
+  var g=el("div","fotos"); w.appendChild(g);
+  var lista=(c.fotos||[]).filter(function(f){return f.tipo===tipo;});
+  lista.forEach(function(f){
+    var im=document.createElement("img"); setFoto(im,f.id); im.alt=rot; im.loading="lazy";
+    im.onclick=function(){ verFoto(f.id); };
+    g.appendChild(im);
+  });
+  if(podeAdd&&assets){
+    var b=el("button","fotoadd");
+    b.innerHTML='<svg viewBox="0 0 24 24"><path d="M3 8l2-3h6l2 3h5a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2v-8a2 2 0 011-2z"/><circle cx="12" cy="13" r="3.4"/></svg>';
+    b.appendChild(el("span",null,"Tirar foto"));
+    b.onclick=function(){
+      picker(function(file){
+        toast("Enviando foto…");
+        subirFoto(file).then(function(id){
+          var cc=chamado(c.id)||c;
+          var fs=(cc.fotos||[]).concat([{id:id,tipo:tipo,ts:Date.now(),quem:uid}]);
+          upChamado(cc,{fotos:fs},"Foto adicionada: "+rot.toLowerCase());
+          toast("Foto salva");
+        }).catch(function(){ toast("Não deu pra enviar a foto"); });
+      });
+    };
+    g.appendChild(b);
+  }
+  if(!lista.length&&!podeAdd) w.appendChild(el("p","small","Nenhuma foto."));
+  return w;
+}
+function temFoto(c,tipo){ return (c.fotos||[]).some(function(f){return f.tipo===tipo;}); }
+
+/* ---------------- navegação ---------------- */
+function go(s,id){ route={s:s,id:id||""}; try{history.replaceState(null,"","#"+s+(id?"/"+id:""));}catch(e){} window.scrollTo(0,0); render(); }
+function lerHash(){
+  var h=(location.hash||"").replace(/^#/,"");
+  if(!h)return null;
+  var p=h.split("/");
+  return {s:p[0],id:p[1]||""};
+}
+var NAV={
+  empresa:[
+    {s:"painel",l:"Painel",i:'<path d="M4 13h6V4H4zM14 20h6v-9h-6zM4 20h6v-4H4zM14 7h6V4h-6z"/>'},
+    {s:"chamados",l:"Chamados",i:'<path d="M4 6h16M4 12h16M4 18h10"/>'},
+    {s:"predios",l:"Equipamentos",i:'<path d="M5 21V4h9v17M14 10h5v11M8 8h3M8 12h3M8 16h3"/>'},
+    {s:"equipe",l:"Equipe",i:'<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-5 6-5s6 1.7 6 5M17 11a2.6 2.6 0 100-5.2M18 20c0-2 .6-3.4-1-4.4"/>'},
+    {s:"config",l:"Ajustes",i:'<circle cx="12" cy="12" r="3"/><path d="M12 3v2m0 14v2M3 12h2m14 0h2M5.6 5.6l1.4 1.4m10 10l1.4 1.4m0-12.8l-1.4 1.4m-10 10l-1.4 1.4"/>'}
+  ],
+  tecnico:[
+    {s:"chamados",l:"Serviços",i:'<path d="M4 6h16M4 12h16M4 18h10"/>'},
+    {s:"checkin",l:"Check-in",i:'<path d="M4 12l5 5L20 6"/>'},
+    {s:"agenda",l:"Agenda",i:'<rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M8 3v4m8-4v4M3.5 10h17"/>'},
+    {s:"meus",l:"Elevadores",i:'<rect x="6" y="3.5" width="12" height="17" rx="2"/><path d="M12 7.5l2.6 3.2H9.4zM12 16.5l-2.6-3.2h5.2z"/>'},
+    {s:"perfil",l:"Perfil",i:'<circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.6 3.1-5.4 7-5.4s7 1.8 7 5.4"/>'}
+  ],
+  cliente:[
+    {s:"meus",l:"Elevadores",i:'<rect x="6" y="3.5" width="12" height="17" rx="2"/><path d="M12 7.5l2.6 3.2H9.4zM12 16.5l-2.6-3.2h5.2z"/>'},
+    {s:"chamados",l:"Chamados",i:'<path d="M4 6h16M4 12h16M4 18h10"/>'},
+    {s:"novo",l:"Chamar",i:'<circle cx="12" cy="12" r="8.5"/><path d="M12 8v8m-4-4h8"/>'},
+    {s:"perfil",l:"Perfil",i:'<circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.6 3.1-5.4 7-5.4s7 1.8 7 5.4"/>'}
+  ]
+};
+function pintaNav(){
+  var p=papel(), itens=NAV[p];
+  var n=$("#nav");
+  if(!itens||!aprovado()){ n.style.display="none"; return; }
+  n.style.display="flex"; n.innerHTML="";
+  itens.forEach(function(it){
+    var b=el("button",route.s===it.s?"on":"");
+    b.innerHTML='<svg viewBox="0 0 24 24">'+it.i+'</svg>';
+    var rot=it.l;
+    if(it.s==="equipe"&&p==="empresa"){
+      var np=D.usuarios.filter(function(u){return !u.aprovado;}).length;
+      if(np) rot=it.l+" ("+np+")";
+    }
+    b.appendChild(el("span",null,rot));
+    if(it.s==="equipe"&&p==="empresa"&&D.usuarios.some(function(u){return !u.aprovado;})) b.style.color="var(--bad)";
+    b.onclick=function(){ go(it.s); };
+    n.appendChild(b);
+  });
+}
+function pintaTopo(titulo,sub,voltar){
+  var t=$("#top"); t.innerHTML="";
+  if(voltar){
+    var b=el("button",null,"‹"); b.id="back"; b.onclick=function(){ go(voltar); };
+    t.appendChild(b);
+  }
+  var w=el("div","t grow"); w.appendChild(document.createTextNode(titulo));
+  if(sub){ var s=el("div","sub",sub); w.appendChild(s); }
+  t.appendChild(w);
+  if(isOwner){
+    var vb=el("button",null, verComo?("Ver: "+({empresa:"Empresa",tecnico:"Técnico",cliente:"Cliente"}[verComo]||verComo)):"Empresa");
+    vb.onclick=trocaPerfil; t.appendChild(vb);
+  }
+}
+function trocaPerfil(){
+  sheet("Ver o app como", function(p,close){
+    p.appendChild(el("p","muted","Você é o dono do app. Dá pra testar as três telas sem sair da conta."));
+    [["empresa","Empresa (dono)"],["tecnico","Técnico"],["cliente","Cliente / síndico"]].forEach(function(x){
+      var b=el("button","btn "+(papel()===x[0]?"":"sec"),x[1]);
+      b.onclick=function(){ verComo = x[0]==="empresa"?null:x[0]; close(); go(x[0]==="empresa"?"painel":(x[0]==="tecnico"?"chamados":"meus")); };
+      p.appendChild(b);
+    });
+  });
+}
+
+/* ---------------- render principal ---------------- */
+function render(){
+  var app=$("#app");
+  if(timerH){clearInterval(timerH);timerH=null;}
+  if(!carregouAuth){
+    app.innerHTML='<div class="loading"><div class="spin"></div>Carregando\u2026</div>';
+    return;
+  }
+  if(!conta){
+    pintaTopo("Elevador OK");
+    $("#nav").style.display="none";
+    app.innerHTML="";
+    var c=el("div","card");
+    c.appendChild(el("h2",null,"Entrar"));
+    c.appendChild(el("p","muted","Use sua conta Google (Gmail). N\u00e3o precisa criar senha nova."));
+    var lb=el("button","btn","Entrar com Google");
+    lb.onclick=function(){
+      var pv=new firebase.auth.GoogleAuthProvider();
+      auth.signInWithPopup(pv).catch(function(e){
+        if(e&&(e.code==="auth/popup-blocked"||e.code==="auth/operation-not-supported-in-this-environment"||e.code==="auth/cancelled-popup-request")) auth.signInWithRedirect(pv);
+        else if(e&&e.code!=="auth/popup-closed-by-user") toast("N\u00e3o deu pra entrar. Tente de novo.");
+      });
+    };
+    c.appendChild(lb);
+    app.appendChild(c);
+    return;
+  }
+  if(!ready.usuarios||!ready.config){
+    app.innerHTML='<div class="loading"><div class="spin"></div>Carregando…</div>';
+    return;
+  }
+  if(!isOwner && !me){ return telaCadastro(); }
+  if(!isOwner && me && !me.aprovado){ return telaPendente(); }
+  if(isOwner && !verComo && !(D.config&&D.config.empresa)){ return telaPrimeiroAcesso(); }
+  var p=papel();
+  if(!route.s){
+    route.s = p==="empresa"?"painel":(p==="tecnico"?"chamados":"meus");
+  }
+  var fn={
+    painel:telaPainel, chamados:telaChamados, chamado:telaChamado, predios:telaPredios,
+    elevador:telaElevador, equipe:telaEquipe, config:telaConfig,
+    novo:telaNovo, checkin:telaCheckin, agenda:telaAgenda, meus:telaMeus, perfil:telaPerfil
+  }[route.s];
+  if(!fn){ route.s = p==="empresa"?"painel":(p==="tecnico"?"chamados":"meus"); return render(); }
+  app.innerHTML="";
+  fn(app);
+  pintaNav();
+}
+function vazio(pai,txt,icone){
+  var d=el("div","empty");
+  d.innerHTML='<svg viewBox="0 0 24 24">'+(icone||'<circle cx="12" cy="12" r="9"/><path d="M12 8v4m0 4h.01"/>')+'</svg>';
+  d.appendChild(el("p",null,txt));
+  pai.appendChild(d);
+}
+
+/* ---------------- cadastro ---------------- */
+var cadPerfil=null;
+function telaCadastro(){
+  pintaTopo("Criar seu acesso");
+  $("#nav").style.display="none";
+  var app=$("#app"); app.innerHTML="";
+
+  if(!cadPerfil){
+    var c0=el("div","card");
+    c0.appendChild(el("h2",null,"Quem \u00e9 voc\u00ea?"));
+    c0.appendChild(el("p","muted","Escolha uma op\u00e7\u00e3o. S\u00e3o poucos campos."));
+    [["tecnico","Sou t\u00e9cnico","Fa\u00e7o as visitas e os consertos"],
+     ["cliente","Sou s\u00edndico ou respons\u00e1vel","Cuido do elevador do pr\u00e9dio"]].forEach(function(x){
+      var b=el("button","btn "+(x[0]==="cliente"?"sec":""));
+      b.style.flexDirection="column"; b.style.gap="3px"; b.style.padding="16px";
+      b.appendChild(el("div",null,x[1]));
+      var sm=el("div",null,x[2]); sm.style.fontWeight="400"; sm.style.fontSize="13px"; sm.style.opacity=".85";
+      b.appendChild(sm);
+      b.onclick=function(){ cadPerfil=x[0]; render(); };
+      c0.appendChild(b);
+    });
+    app.appendChild(c0);
+    return;
+  }
+
+  var tec = cadPerfil==="tecnico";
+  var c=el("div","card");
+  c.appendChild(el("h2",null,tec?"Seus dados":"Seus dados"));
+  c.appendChild(el("p","muted",tec
+    ? "S\u00f3 isso. Depois a empresa manda os elevadores que ficam com voc\u00ea."
+    : "S\u00f3 isso. Depois a empresa liga os seus pr\u00e9dios ao seu acesso."));
+  var nm=campo(c,"Nome completo","text","","Seu nome");
+  var tel=campo(c,"Telefone (WhatsApp)","tel","","(11) 90000-0000");
+  var dc=campo(c,"CPF ou CNPJ","text","","Pessoa f\u00edsica ou empresa");
+  var m=mais(c,"Mais dados (opcional)");
+  var raz=campo(m,"Raz\u00e3o social","text","","Se for empresa");
+  var pix=campo(m,"Chave Pix (para receber)","text","","CPF, CNPJ, telefone ou chave");
+  var bco=campo(m,"Banco e conta","text","","Banco, ag\u00eancia e conta");
+  var b=el("button","btn","Enviar cadastro");
+  b.onclick=function(){
+    if(!nm.value.trim())return toast("Escreva seu nome.");
+    if(!dc.value.trim())return toast("Informe o CPF ou CNPJ.");
+    var d=dc.value.trim(), so=d.replace(/\D/g,""), pj=so.length>11;
+    var o={id:uid, nome:nm.value.trim(), perfil:cadPerfil, telefone:tel.value.trim(),
+      tipoPessoa:pj?"pj":"pf", cpf:pj?"":d, cnpj:pj?d:"",
+      razao:raz.value.trim(), pix:pix.value.trim(), banco:bco.value.trim(),
+      aprovado:false, clienteIds:[], criado:Date.now()};
+    b.disabled=true;
+    save("usuarios/"+uid,o).then(function(){ me=o; D.usuarios.push(o); toast("Cadastro enviado!"); render(); })
+      .catch(function(){ b.disabled=false; });
+  };
+  c.appendChild(b);
+  var v=el("button","btn gray","Voltar");
+  v.onclick=function(){ cadPerfil=null; render(); };
+  c.appendChild(v);
+  app.appendChild(c);
+}
+
+function telaPrimeiroAcesso(){
+  pintaTopo("Bem-vindo");
+  $("#nav").style.display="none";
+  var app=$("#app"); app.innerHTML="";
+  var c=el("div","card");
+  c.appendChild(el("h2",null,"Cadastre sua empresa"));
+  c.appendChild(el("p","muted","\u00c9 o primeiro passo. Depois voc\u00ea cadastra os pr\u00e9dios e os elevadores."));
+  var nm=campo(c,"Nome da empresa","text","","Minha Elevadores Ltda");
+  var te=campo(c,"Telefone de atendimento","tel","","(11) 0000-0000");
+  var so=campo(c,"Telefone de emerg\u00eancia (SOS)","tel","","(11) 90000-0000");
+  var m=mais(c,"Mais dados (opcional)");
+  var cn=campo(m,"CNPJ","text","","00.000.000/0000-00");
+  var px=campo(m,"Chave Pix da empresa","text","","CNPJ, telefone ou chave");
+  var b=el("button","btn","Salvar e continuar");
+  b.onclick=function(){
+    if(!nm.value.trim())return toast("Escreva o nome da empresa.");
+    var o={empresa:nm.value.trim(),cnpj:cn.value.trim(),telefone:te.value.trim(),sos:so.value.trim(),pix:px.value.trim(),atualizado:Date.now()};
+    D.config=o; b.disabled=true;
+    save("config/app",o).then(function(){ toast("Empresa cadastrada!"); go("predios"); })
+      .catch(function(){ b.disabled=false; });
+  };
+  c.appendChild(b);
+  app.appendChild(c);
+}
+function telaPendente(){
+  pintaTopo("Aguardando liberação");
+  $("#nav").style.display="none";
+  var app=$("#app"); app.innerHTML="";
+  var c=el("div","card");
+  c.appendChild(el("h2",null,"Cadastro enviado"));
+  c.appendChild(el("p","muted","A empresa recebeu seu cadastro. Assim que ela aprovar, seus chamados aparecem aqui."));
+  c.appendChild(el("div","kv")).innerHTML="<b>Nome</b><span>"+esc(me.nome)+"</span>";
+  c.appendChild(el("div","kv")).innerHTML="<b>Perfil</b><span>"+(me.perfil==="tecnico"?"Técnico":"Cliente")+"</span>";
+  var tel=(D.config&&D.config.telefone)||"";
+  if(tel){
+    var a=el("a","btn sec","Falar com a empresa");
+    a.href="tel:"+tel.replace(/[^\d+]/g,""); c.appendChild(a);
+  }
+  var b=el("button","btn gray","Atualizar");
+  b.onclick=function(){ location.reload(); };
+  c.appendChild(b);
+  app.appendChild(c);
+}
+
+/* ---------------- painel da empresa ---------------- */
+function telaPainel(app){
+  pintaTopo((D.config&&D.config.empresa)||"Minha empresa","Painel");
+  var cs=meusChamados();
+  var abertos=cs.filter(function(c){return ["concluido","pago"].indexOf(c.status)<0;});
+  var pend=D.usuarios.filter(function(u){return !u.aprovado;});
+  var av=aVencer();
+  var faltou=cs.filter(atrasado);
+
+  if(pend.length){
+    var b1=el("div","banner warn");
+    b1.textContent=pend.length+" cadastro"+(pend.length>1?"s":"")+" esperando sua aprovação";
+    b1.style.cursor="pointer"; b1.onclick=function(){go("equipe");};
+    app.appendChild(b1);
+  }
+  if(faltou.length){
+    var b2=el("div","banner bad");
+    b2.textContent=faltou.length+" visita"+(faltou.length>1?"s":"")+" marcada"+(faltou.length>1?"s":"")+" sem check-in do técnico";
+    b2.style.cursor="pointer"; b2.onclick=function(){go("chamados");};
+    app.appendChild(b2);
+  }
+
+  var g=el("div","row");
+  [["Chamados abertos",abertos.length,"chamados"],["Manutenções a vencer",av.length,null],["Elevadores",D.elevadores.length,"predios"]]
+  .forEach(function(x){
+    var c=el("div","card tight grow");
+    c.style.textAlign="center"; c.style.margin="10px 0";
+    var n=el("div",null,String(x[1])); n.style.fontSize="26px"; n.style.fontWeight="700";
+    c.appendChild(n); c.appendChild(el("div","small",x[0]));
+    if(x[2]){ c.style.cursor="pointer"; c.onclick=function(){go(x[2]);}; }
+    g.appendChild(c);
+  });
+  app.appendChild(g);
+
+  app.appendChild(el("h2",null,"Manutenções a vencer"));
+  if(!av.length) vazio(app,"Nenhuma manutenção perto de vencer.",'<path d="M4 12l5 5L20 6"/>');
+  av.slice(0,8).forEach(function(x){
+    var cl=cliente(x.e.clienteId);
+    var c=el("button","card tight");
+    var r=el("div","spread");
+    var w=el("div","grow");
+    w.appendChild(el("div",null,(x.e.predio||"Prédio")+" · "+(x.e.identificacao||"Elevador")));
+    w.appendChild(el("div","small",cl?cl.nome:""));
+    r.appendChild(w); r.appendChild(stPillM(x.m));
+    c.appendChild(r);
+    c.onclick=function(){ go("elevador",x.e.id); };
+    app.appendChild(c);
+  });
+
+  app.appendChild(el("h2",null,"Chamados abertos"));
+  if(!abertos.length) vazio(app,"Nenhum chamado aberto.",'<path d="M4 6h16M4 12h16M4 18h10"/>');
+  abertos.slice(0,10).forEach(function(c){ app.appendChild(cardChamado(c)); });
+}
+function stPillM(m){ var e=el("span","pill "+m.c,m.txt); return e; }
+
+/* ---------------- cartão de chamado ---------------- */
+function cardChamado(c){
+  var e=elevador(c.elevadorId), cl=cliente(c.clienteId), t=usuario(c.tecnicoUid);
+  var b=el("button","card tight");
+  var top=el("div","spread");
+  var w=el("div","grow");
+  w.appendChild(el("div",null,(e&&e.predio?e.predio:"Prédio")+" · "+((e&&e.identificacao)||"Elevador")));
+  var sub=[];
+  if(cl)sub.push(cl.nome);
+  if(c.tipo==="preventivo")sub.push("Preventiva");
+  w.appendChild(el("div","small",sub.join(" · ")));
+  top.appendChild(w); top.appendChild(stPill(c.status));
+  b.appendChild(top);
+  var info=[];
+  if(papel()!=="tecnico"&&t)info.push("Téc.: "+nome(t));
+  if(c.agendamento)info.push(dt(c.agendamento));
+  if(c.descricao)info.push(c.descricao.slice(0,60));
+  if(info.length){ var l=el("div","small",info.join(" · ")); l.style.marginTop="6px"; b.appendChild(l); }
+  if(atrasado(c)){ var al=el("div","pill vermelho","Sem check-in"); al.style.marginTop="7px"; b.appendChild(al); }
+  b.onclick=function(){ go("chamado",c.id); };
+  return b;
+}
+
+/* ---------------- lista de chamados ---------------- */
+var filtroCh="abertos";
+function telaChamados(app){
+  var p=papel();
+  pintaTopo(p==="tecnico"?"Meus serviços":"Chamados", null);
+  var cs=meusChamados();
+  var tabs=el("div","tabs");
+  [["abertos","Em andamento"],["todos","Todos"],["peca","Aguardando peça"],["concluidos","Concluídos"]].forEach(function(x){
+    var b=el("button",filtroCh===x[0]?"on":"",x[1]);
+    b.onclick=function(){ filtroCh=x[0]; render(); };
+    tabs.appendChild(b);
+  });
+  app.appendChild(tabs);
+  var lista=cs.filter(function(c){
+    if(filtroCh==="todos")return true;
+    if(filtroCh==="peca")return ["aguardando_peca","peca_chegou"].indexOf(c.status)>=0;
+    if(filtroCh==="concluidos")return ["concluido","aguardando_pagamento","pago"].indexOf(c.status)>=0;
+    return ["concluido","pago"].indexOf(c.status)<0;
+  });
+  if(!lista.length) vazio(app,"Nada aqui por enquanto.",'<path d="M4 6h16M4 12h16M4 18h10"/>');
+  lista.forEach(function(c){ app.appendChild(cardChamado(c)); });
+  if(p==="empresa"||p==="cliente"){
+    var b=el("button","btn","Abrir novo chamado");
+    b.onclick=function(){ go("novo"); };
+    app.appendChild(b);
+  }
+}
+
+/* ---------------- detalhe do chamado ---------------- */
+function telaChamado(app){
+  var c=chamado(route.id);
+  if(!c){ vazio(app,"Chamado não encontrado."); return; }
+  var e=elevador(c.elevadorId), cl=cliente(c.clienteId), t=usuario(c.tecnicoUid), p=papel();
+  pintaTopo((e&&e.predio)||"Chamado",(e&&e.identificacao)||"", "chamados");
+
+  /* resumo */
+  var h=el("div","card");
+  var sp=el("div","spread");
+  var hw=el("div","grow");
+  hw.appendChild(el("div",null,c.tipo==="preventivo"?"Manutenção preventiva":"Chamado corretivo"));
+  hw.appendChild(el("div","small","Aberto em "+dt(c.criado)));
+  sp.appendChild(hw); sp.appendChild(stPill(c.status));
+  h.appendChild(sp);
+  if(c.descricao){ var d=el("p",null,c.descricao); d.style.marginBottom="0"; h.appendChild(d); }
+  app.appendChild(h);
+
+  if(atrasado(c)) app.appendChild(el("div","banner bad","A visita estava marcada para "+dt(c.agendamento)+" e não houve check-in no local."));
+
+  /* passos */
+  var passos=[
+    {l:"Chamado aberto", ok:true},
+    {l:"Técnico designado", ok:!!c.tecnicoUid},
+    {l:"Visita agendada", ok:!!c.agendamento},
+    {l:"Check-in no local", ok:!!c.checkin},
+    {l:"Serviço concluído", ok:["concluido","aguardando_pagamento","pago"].indexOf(c.status)>=0},
+    {l:"Pago", ok:c.status==="pago"}
+  ];
+  var ps=el("div","card");
+  var achou=false;
+  passos.forEach(function(x,i){
+    var cls="step"+(x.ok?" done":(!achou?(achou=true," now"):""));
+    var s=el("div",cls);
+    s.appendChild(el("div","n",x.ok?"✓":String(i+1)));
+    var w=el("div","grow"); w.appendChild(el("div",null,x.l));
+    if(x.l==="Check-in no local"&&c.checkin){
+      var txt=dt(c.checkin.ts);
+      if(c.checkin.dist!=null)txt+=" · "+c.checkin.dist+" m do prédio";
+      w.appendChild(el("div","small",txt));
+    }
+    if(x.l==="Serviço concluído"&&c.checkout) w.appendChild(el("div","small",dt(c.checkout.ts)+" · "+durTexto(c.tempoMin)+" no local"));
+    s.appendChild(w); ps.appendChild(s);
+  });
+  app.appendChild(ps);
+
+  /* dados */
+  var dd=el("div","card");
+  dd.appendChild(el("h3",null,"Dados"));
+  function kv(k,v){ var r=el("div","kv"); r.appendChild(el("b",null,k)); r.appendChild(el("span",null,v||"—")); dd.appendChild(r); }
+  if(cl) kv("Cliente",cl.nome);
+  if(e) kv("Equipamento",[e.fabricante,e.modelo].filter(Boolean).join(" ")||"—");
+  if(e&&e.codigo) kv("Código do elevador",e.codigo);
+  if(e&&e.garantiaTipo) kv("Garantia",({total:"Total",pecas:"Só peças",mao:"Só mão de obra",nenhuma:"Sem garantia"})[e.garantiaTipo]||e.garantiaTipo);
+  if(e&&e.garantiaPecas) kv("Peças em garantia",e.garantiaPecas);
+  if(p!=="tecnico") kv("Técnico",t?nome(t):"Não designado");
+  if(c.agendamento) kv("Visita marcada",dt(c.agendamento));
+  if(c.checkin&&c.checkin.lat!=null) kv("Local do check-in",c.checkin.dist!=null?(c.checkin.dist+" m do prédio"):"registrado");
+  if(c.checkout) kv("Tempo no local",durTexto(c.tempoMin));
+  if(e&&e.endereco){
+    var a=el("a","btn sec","Abrir no mapa");
+    a.href="https://maps.google.com/?q="+encodeURIComponent(e.endereco+" "+(e.cep||""));
+    a.target="_blank"; a.rel="noopener"; dd.appendChild(a);
+  }
+  app.appendChild(dd);
+
+  /* cronômetro em atendimento */
+  if(c.checkin&&!c.checkout){
+    var tc=el("div","card");
+    tc.appendChild(el("h3",null,"Em atendimento"));
+    var tm=el("div","timer","00:00"); tc.appendChild(tm);
+    tc.appendChild(el("div","small","Começou às "+dt(c.checkin.ts)));
+    var upd=function(){ tm.textContent=dur(Date.now()-c.checkin.ts); };
+    upd(); timerH=setInterval(upd,1000);
+    app.appendChild(tc);
+  }
+
+  /* fotos */
+  var podeFoto=(p==="tecnico"&&c.tecnicoUid===uid&&!!c.checkin)||p==="empresa";
+  var fc=el("div","card");
+  fc.appendChild(el("h3",null,"Fotos do serviço"));
+  blocoFotos(fc,c,"problema","Problema encontrado",podeFoto);
+  blocoFotos(fc,c,"instalada","Peça nova instalada",podeFoto);
+  blocoFotos(fc,c,"retirada","Peça retirada",podeFoto);
+  app.appendChild(fc);
+
+  /* observações */
+  var oc=el("div","card");
+  oc.appendChild(el("h3",null,"Observações do técnico"));
+  if(p==="tecnico"&&c.tecnicoUid===uid){
+    var ta=campo(oc,"Escreva o que achou, o que fez, o que precisa de atenção","area",c.obs||"","");
+    var ob=el("button","btn sec","Salvar observações");
+    ob.onclick=function(){ upChamado(c,{obs:ta.value},"Observações atualizadas"); toast("Salvo"); };
+    oc.appendChild(ob);
+  } else {
+    oc.appendChild(el("p",c.obs?"":"small", c.obs||"Nada escrito ainda."));
+  }
+  app.appendChild(oc);
+
+  /* peças */
+  var pc=el("div","card");
+  pc.appendChild(el("h3",null,"Peças"));
+  var pecas=c.pecas||[];
+  if(!pecas.length) pc.appendChild(el("p","small","Nenhuma peça pedida."));
+  pecas.forEach(function(pe,i){
+    var box=el("div"); box.style.borderTop=i?"1px solid var(--line)":"0"; box.style.paddingTop=i?"11px":"0"; box.style.marginTop=i?"11px":"0";
+    var sp2=el("div","spread");
+    var w=el("div","grow");
+    w.appendChild(el("div",null,pe.nome||"Peça"));
+    var sub=[];
+    if(pe.previsao)sub.push("Previsão: "+dia(pe.previsao));
+    if(pe.garantia)sub.push("Em garantia");
+    if(pe.valor)sub.push(money(pe.valor));
+    if(sub.length)w.appendChild(el("div","small",sub.join(" · ")));
+    if(pe.obs)w.appendChild(el("div","small",pe.obs));
+    sp2.appendChild(w);
+    var stp={pedida:["Pedida","amarelo"],comprada:["Comprada","azul"],chegou:["Chegou","verde"],instalada:["Instalada","cinza"]}[pe.status||"pedida"];
+    sp2.appendChild(el("span","pill "+stp[1],stp[0]));
+    box.appendChild(sp2);
+    if(pe.fotoId){
+      var g=el("div","fotos");
+      var im=document.createElement("img"); setFoto(im,pe.fotoId); im.alt="Peça";
+      im.onclick=function(){ verFoto(pe.fotoId); };
+      g.appendChild(im); box.appendChild(g);
+    }
+    if(p==="empresa"){
+      var ab=el("button","btn sm sec","Atualizar peça"); ab.style.marginTop="9px";
+      ab.onclick=function(){ sheetPeca(c,i); };
+      box.appendChild(ab);
+    }
+    pc.appendChild(box);
+  });
+  if(p==="tecnico"&&c.tecnicoUid===uid&&c.checkin){
+    var pb=el("button","btn sec","Pedir uma peça");
+    pb.onclick=function(){ sheetPedirPeca(c); };
+    pc.appendChild(pb);
+  }
+  app.appendChild(pc);
+
+  /* orçamento ao cliente */
+  if(c.orcamento||p==="empresa"){
+    var qc=el("div","card");
+    qc.appendChild(el("h3",null,"Orçamento para o cliente"));
+    if(c.orcamento){
+      var r=el("div","spread");
+      var vw=el("div","grow");
+      vw.appendChild(el("div",null,money(c.orcamento.valor)));
+      if(c.orcamento.descricao)vw.appendChild(el("div","small",c.orcamento.descricao));
+      r.appendChild(vw);
+      var so={pendente:["Aguardando aprovação","amarelo"],aprovado:["Aprovado","verde"],recusado:["Recusado","vermelho"]}[c.orcamento.status||"pendente"];
+      r.appendChild(el("span","pill "+so[1],so[0]));
+      qc.appendChild(r);
+      if(p==="cliente"&&c.orcamento.status==="pendente"){
+        var ba=el("button","btn ok","Aprovar orçamento");
+        ba.onclick=function(){
+          var o=Object.assign({},c.orcamento,{status:"aprovado",aprovadoEm:Date.now()});
+          upChamado(c,{orcamento:o,status:c.checkout?"aguardando_pagamento":(temPecaPendente(c)?"aguardando_peca":"agendado")},"Cliente aprovou o orçamento de "+money(o.valor));
+          toast("Orçamento aprovado");
+        };
+        qc.appendChild(ba);
+        var br=el("button","btn danger","Recusar");
+        br.onclick=function(){
+          var o=Object.assign({},c.orcamento,{status:"recusado"});
+          upChamado(c,{orcamento:o},"Cliente recusou o orçamento");
+        };
+        qc.appendChild(br);
+      }
+    } else qc.appendChild(el("p","small","Nenhum orçamento enviado."));
+    if(p==="empresa"){
+      var bo=el("button","btn sec",c.orcamento?"Refazer orçamento":"Enviar orçamento ao cliente");
+      bo.onclick=function(){ sheetOrcamento(c); };
+      qc.appendChild(bo);
+    }
+    app.appendChild(qc);
+  }
+
+  /* cobrança */
+  if(c.cobranca||(p==="empresa"&&c.checkout)){
+    var cc=el("div","card");
+    cc.appendChild(el("h3",null,"Cobrança"));
+    if(c.cobranca){
+      var r2=el("div","spread");
+      var cw=el("div","grow");
+      cw.appendChild(el("div",null,money(c.cobranca.valor)));
+      if(c.cobranca.nota)cw.appendChild(el("div","small","Nota: "+c.cobranca.nota));
+      r2.appendChild(cw);
+      r2.appendChild(el("span","pill "+(c.cobranca.status==="pago"?"verde":"amarelo"),c.cobranca.status==="pago"?"Pago":"A pagar"));
+      cc.appendChild(r2);
+      if(c.cobranca.pix){
+        var pr=el("div","kv"); pr.appendChild(el("b",null,"Chave Pix")); pr.appendChild(el("span",null,c.cobranca.pix)); cc.appendChild(pr);
+        var cp=el("button","btn sec","Copiar chave Pix");
+        cp.onclick=function(){ copiar(c.cobranca.pix); };
+        cc.appendChild(cp);
+      }
+      if(c.cobranca.status!=="pago"&&(p==="cliente"||p==="empresa")){
+        var bp=el("button","btn ok","Marcar como pago");
+        bp.onclick=function(){
+          var o=Object.assign({},c.cobranca,{status:"pago",pagoEm:Date.now()});
+          upChamado(c,{cobranca:o,status:"pago"},"Pagamento confirmado");
+          toast("Pagamento registrado");
+        };
+        cc.appendChild(bp);
+      }
+    } else cc.appendChild(el("p","small","Nenhuma cobrança enviada."));
+    if(p==="empresa"&&c.checkout){
+      var bc=el("button","btn sec",c.cobranca?"Refazer cobrança":"Enviar nota e cobrança");
+      bc.onclick=function(){ sheetCobranca(c); };
+      cc.appendChild(bc);
+    }
+    app.appendChild(cc);
+  }
+
+  /* orçamento do técnico — só empresa e o próprio técnico */
+  if(p==="empresa"||(p==="tecnico"&&c.tecnicoUid===uid)){
+    var tc2=el("div","card");
+    tc2.appendChild(el("h3",null,"Valor do técnico"));
+    tc2.appendChild(el("p","small","Visível só para a empresa e para o técnico. O cliente não vê."));
+    if(c.orcTecnico){
+      var r3=el("div","spread");
+      var tw=el("div","grow");
+      tw.appendChild(el("div",null,money(c.orcTecnico.valor)));
+      if(c.orcTecnico.descricao)tw.appendChild(el("div","small",c.orcTecnico.descricao));
+      if(c.orcTecnico.pix)tw.appendChild(el("div","small","Pix: "+c.orcTecnico.pix));
+      r3.appendChild(tw);
+      r3.appendChild(el("span","pill "+(c.orcTecnico.status==="pago"?"verde":"amarelo"),c.orcTecnico.status==="pago"?"Pago":"A pagar"));
+      tc2.appendChild(r3);
+      if(c.orcTecnico.pix&&p==="empresa"){
+        var cp2=el("button","btn sec","Copiar Pix do técnico");
+        cp2.onclick=function(){ copiar(c.orcTecnico.pix); };
+        tc2.appendChild(cp2);
+      }
+      if(p==="empresa"&&c.orcTecnico.status!=="pago"){
+        var bt=el("button","btn ok","Marcar técnico como pago");
+        bt.onclick=function(){
+          var o=Object.assign({},c.orcTecnico,{status:"pago",pagoEm:Date.now()});
+          upChamado(c,{orcTecnico:o},"Técnico pago: "+money(o.valor));
+        };
+        tc2.appendChild(bt);
+      }
+    } else tc2.appendChild(el("p","small","Nenhum valor enviado."));
+    if(p==="tecnico"&&c.tecnicoUid===uid){
+      var bt2=el("button","btn sec",c.orcTecnico?"Mudar meu valor":"Enviar meu valor à empresa");
+      bt2.onclick=function(){ sheetOrcTecnico(c); };
+      tc2.appendChild(bt2);
+    }
+    app.appendChild(tc2);
+  }
+
+  /* ações principais */
+  var ac=el("div","card");
+  ac.appendChild(el("h3",null,"Ações"));
+  var tem=false;
+  function acao(rot,cls,fn){ var b=el("button","btn "+(cls||""),rot); b.onclick=fn; ac.appendChild(b); tem=true; }
+
+  if(p==="empresa"){
+    acao(c.tecnicoUid?"Trocar técnico":"Designar técnico","",function(){ sheetDesignar(c); });
+    if(!c.agendamento) acao("Marcar data da visita","sec",function(){ sheetAgendar(c); });
+    if(c.status!=="pago") acao("Mudar status na mão","gray",function(){ sheetStatus(c); });
+  }
+  if(p==="tecnico"&&c.tecnicoUid===uid){
+    if(!c.agendamento) acao("Confirmar dia e hora da visita","",function(){ sheetAgendar(c); });
+    else if(!c.checkin) acao("Fazer check-in no local","",function(){ go("checkin",c.id); });
+    if(c.checkin&&!c.checkout) acao("Encerrar atendimento (check-out)","ok",function(){ sheetCheckout(c); });
+    if(c.status==="peca_chegou") acao("Marcar data de retorno","sec",function(){ sheetAgendar(c,true); });
+  }
+  if(p==="cliente"){
+    var tel=(D.config&&D.config.telefone)||"";
+    if(tel){ var a2=el("a","btn sec","Ligar para a empresa"); a2.href="tel:"+tel.replace(/[^\d+]/g,""); ac.appendChild(a2); tem=true; }
+  }
+  if(tem) app.appendChild(ac);
+
+  /* histórico */
+  if((c.hist||[]).length){
+    var hc=el("div","card");
+    hc.appendChild(el("h3",null,"Histórico"));
+    c.hist.slice().reverse().forEach(function(x){
+      var r=el("div","kv");
+      r.appendChild(el("b",null,dt(x.ts)));
+      r.appendChild(el("span",null,x.texto));
+      hc.appendChild(r);
+    });
+    app.appendChild(hc);
+  }
+}
+function temPecaPendente(c){ return (c.pecas||[]).some(function(p){return p.status!=="instalada"&&p.status!=="chegou";}); }
+function copiar(txt){
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(function(){toast("Copiado!");},function(){toast(txt);});
+  } else toast(txt);
+}
+
+/* ---------------- folhas de ação ---------------- */
+function sheetDesignar(c){
+  sheet("Designar técnico",function(p,close){
+    var ts=tecnicos();
+    if(!ts.length){ p.appendChild(el("p","muted","Nenhum técnico aprovado ainda. Cadastre e aprove na aba Equipe.")); return; }
+    ts.forEach(function(t){
+      var b=el("button","btn "+(c.tecnicoUid===t.id?"":"sec"),nome(t));
+      b.onclick=function(){
+        close();
+        upChamado(c,{tecnicoUid:t.id,status:c.status==="aberto"?"designado":c.status},"Técnico designado: "+nome(t));
+        toast("Técnico designado");
+      };
+      p.appendChild(b);
+    });
+  });
+}
+function sheetAgendar(c,retorno){
+  sheet(retorno?"Data de retorno":"Marcar a visita",function(p,close){
+    var d=campo(p,"Dia","date",(c.agendamento?new Date(c.agendamento).toISOString().slice(0,10):hoje()));
+    var h=campo(p,"Hora","time",(c.agendamento?new Date(c.agendamento).toTimeString().slice(0,5):"09:00"));
+    var b=el("button","btn","Confirmar");
+    b.onclick=function(){
+      if(!d.value)return toast("Escolha o dia.");
+      var ts=new Date(d.value+"T"+(h.value||"09:00")+":00").getTime();
+      close();
+      upChamado(c,{agendamento:ts,status:"agendado",checkin:null,checkout:null},(retorno?"Retorno marcado para ":"Visita marcada para ")+dt(ts));
+      toast("Visita marcada");
+    };
+    p.appendChild(b);
+  });
+}
+function sheetPedirPeca(c){
+  sheet("Pedir uma peça",function(p,close){
+    p.appendChild(el("p","muted","A foto da peça com problema é obrigatória para o pedido."));
+    var nm=campo(p,"Nome da peça","text","","Ex.: contator do motor de porta");
+    var ob=campo(p,"Observação","area","","Onde fica, medida, código, o que notou");
+    var fotoId=null;
+    var prev=el("div","fotos"); p.appendChild(prev);
+    var fb=el("button","btn sec","Tirar foto da peça");
+    fb.onclick=function(){
+      picker(function(f){
+        toast("Enviando foto…");
+        subirFoto(f).then(function(id){
+          fotoId=id; prev.innerHTML="";
+          var im=document.createElement("img"); setFoto(im,id); im.alt="Peça"; prev.appendChild(im);
+          toast("Foto pronta");
+        }).catch(function(){ toast("Não deu pra enviar a foto"); });
+      });
+    };
+    p.appendChild(fb);
+    var b=el("button","btn","Enviar pedido à empresa");
+    b.onclick=function(){
+      if(!nm.value.trim())return toast("Escreva o nome da peça.");
+      if(!fotoId&&assets)return toast("Tire a foto da peça com problema.");
+      var pecas=(c.pecas||[]).concat([{nome:nm.value.trim(),obs:ob.value.trim(),fotoId:fotoId,status:"pedida",pedidoEm:Date.now()}]);
+      var fotos=(c.fotos||[]);
+      if(fotoId) fotos=fotos.concat([{id:fotoId,tipo:"problema",ts:Date.now(),quem:uid}]);
+      close();
+      upChamado(c,{pecas:pecas,fotos:fotos,status:"aguardando_peca"},"Peça pedida: "+nm.value.trim());
+      toast("Pedido enviado");
+    };
+    p.appendChild(b);
+  });
+}
+function sheetPeca(c,i){
+  var pe=(c.pecas||[])[i]||{};
+  sheet("Peça: "+(pe.nome||""),function(p,close){
+    var st=selec(p,"Status",[{v:"pedida",l:"Pedida"},{v:"comprada",l:"Comprada"},{v:"chegou",l:"Chegou"},{v:"instalada",l:"Instalada"}],pe.status||"pedida");
+    var pv=campo(p,"Previsão de chegada","date",pe.previsao||"");
+    var vl=campo(p,"Valor da peça","text",pe.valor!=null?String(pe.valor).replace(".",","):"","0,00");
+    var gr=selec(p,"Está na garantia?",[{v:"nao",l:"Não — vai ser cobrada"},{v:"sim",l:"Sim — coberta pelo contrato"}],pe.garantia?"sim":"nao");
+    var b=el("button","btn","Salvar");
+    b.onclick=function(){
+      var pecas=(c.pecas||[]).slice();
+      pecas[i]=Object.assign({},pe,{status:st.value,previsao:pv.value||null,valor:vl.value?dnum(vl.value):null,garantia:gr.value==="sim"});
+      var extra={pecas:pecas};
+      if(st.value==="chegou")extra.status="peca_chegou";
+      else if(st.value==="comprada"||st.value==="pedida")extra.status="aguardando_peca";
+      close();
+      var msg="Peça "+(pe.nome||"")+": "+({pedida:"pedida",comprada:"comprada",chegou:"chegou",instalada:"instalada"})[st.value];
+      if(pv.value&&st.value!=="chegou")msg+=" · previsão "+dia(pv.value);
+      upChamado(c,extra,msg);
+      toast("Salvo");
+    };
+    p.appendChild(b);
+  });
+}
+function sheetOrcamento(c){
+  sheet("Orçamento ao cliente",function(p,close){
+    var vl=campo(p,"Valor total","text",c.orcamento?String(c.orcamento.valor).replace(".",","):"","0,00");
+    var ds=campo(p,"O que está incluído","area",c.orcamento?c.orcamento.descricao:"","Peça, mão de obra, prazo");
+    var b=el("button","btn","Enviar ao cliente");
+    b.onclick=function(){
+      var v=dnum(vl.value);
+      if(!isFinite(v)||v<=0)return toast("Informe o valor.");
+      close();
+      upChamado(c,{orcamento:{valor:v,descricao:ds.value.trim(),status:"pendente",enviadoEm:Date.now()},status:"aguardando_orcamento"},"Orçamento enviado ao cliente: "+money(v));
+      toast("Orçamento enviado");
+    };
+    p.appendChild(b);
+  });
+}
+function sheetCobranca(c){
+  sheet("Nota e cobrança",function(p,close){
+    var base=(c.orcamento&&c.orcamento.status==="aprovado")?c.orcamento.valor:"";
+    var vl=campo(p,"Valor a cobrar","text",c.cobranca?String(c.cobranca.valor).replace(".",","):(base?String(base).replace(".",","):""),"0,00");
+    var no=campo(p,"Número da nota","text",c.cobranca?c.cobranca.nota:"","NF 000");
+    var px=campo(p,"Chave Pix da empresa","text",(c.cobranca&&c.cobranca.pix)||(D.config&&D.config.pix)||"","CNPJ, telefone ou chave");
+    var b=el("button","btn","Enviar cobrança");
+    b.onclick=function(){
+      var v=dnum(vl.value);
+      if(!isFinite(v)||v<=0)return toast("Informe o valor.");
+      close();
+      upChamado(c,{cobranca:{valor:v,nota:no.value.trim(),pix:px.value.trim(),status:"pendente",enviadoEm:Date.now()},status:"aguardando_pagamento"},"Cobrança enviada: "+money(v));
+      toast("Cobrança enviada");
+    };
+    p.appendChild(b);
+  });
+}
+function sheetOrcTecnico(c){
+  sheet("Meu valor",function(p,close){
+    p.appendChild(el("p","muted","Só a empresa vê este valor."));
+    var vl=campo(p,"Valor do meu serviço","text",c.orcTecnico?String(c.orcTecnico.valor).replace(".",","):"","0,00");
+    var ds=campo(p,"Descrição","area",c.orcTecnico?c.orcTecnico.descricao:"","Horas, deslocamento, serviço");
+    var px=campo(p,"Minha chave Pix","text",(c.orcTecnico&&c.orcTecnico.pix)||(me&&me.pix)||"","");
+    var b=el("button","btn","Enviar à empresa");
+    b.onclick=function(){
+      var v=dnum(vl.value);
+      if(!isFinite(v)||v<=0)return toast("Informe o valor.");
+      close();
+      upChamado(c,{orcTecnico:{valor:v,descricao:ds.value.trim(),pix:px.value.trim(),status:"pendente",enviadoEm:Date.now()}},"Técnico enviou seu valor");
+      toast("Enviado");
+    };
+    p.appendChild(b);
+  });
+}
+function sheetStatus(c){
+  sheet("Mudar status",function(p,close){
+    Object.keys(STATUS).forEach(function(k){
+      var b=el("button","btn "+(c.status===k?"":"sec"),STATUS[k].l);
+      b.onclick=function(){ close(); upChamado(c,{status:k},"Status mudado para "+STATUS[k].l); };
+      p.appendChild(b);
+    });
+  });
+}
+function sheetCheckout(c){
+  sheet("Encerrar atendimento",function(p,close){
+    var falta=[];
+    if(!temFoto(c,"problema"))falta.push("foto do problema");
+    var pecaTrocada=(c.pecas||[]).some(function(x){return x.status==="chegou"||x.status==="instalada";});
+    if(pecaTrocada){
+      if(!temFoto(c,"instalada"))falta.push("foto da peça nova instalada");
+      if(!temFoto(c,"retirada"))falta.push("foto da peça retirada");
+    }
+    if(falta.length){
+      p.appendChild(el("div","banner warn","Falta: "+falta.join(", ")+"."));
+    }
+    var res=selec(p,"Como terminou",[{v:"resolvido",l:"Resolvido"},{v:"peca",l:"Preciso de peça — volto depois"}],falta.length?"peca":"resolvido");
+    var ob=campo(p,"Resumo do que foi feito","area",c.obs||"","");
+    var b=el("button","btn ok","Confirmar check-out");
+    b.onclick=function(){
+      if(falta.length&&res.value==="resolvido")return toast("Tire as fotos que faltam antes de encerrar.");
+      var ts=Date.now();
+      var min=Math.max(1,Math.round((ts-(c.checkin?c.checkin.ts:ts))/60000));
+      var novo=res.value==="resolvido"?"concluido":"aguardando_peca";
+      var extra={checkout:{ts:ts},tempoMin:min,obs:ob.value,status:novo};
+      if(res.value==="resolvido"){
+        var e=elevador(c.elevadorId);
+        if(e&&c.tipo==="preventivo"){
+          var ee=Object.assign({},e,{ultimaManut:new Date(ts).toISOString().slice(0,10)});
+          var i=D.elevadores.findIndex(function(x){return x.id===e.id;}); if(i>=0)D.elevadores[i]=ee;
+          save("elevadores/"+e.id,ee);
+        }
+      }
+      close();
+      upChamado(c,extra,"Check-out · "+durTexto(min)+" no local · "+(res.value==="resolvido"?"resolvido":"aguardando peça"));
+      toast("Atendimento encerrado");
+    };
+    p.appendChild(b);
+  });
+}
+
+/* ---------------- check-in ---------------- */
+function telaCheckin(app){
+  pintaTopo("Check-in no local",null,"chamados");
+  var pre=route.id?chamado(route.id):null;
+  var pendentes=meusChamados().filter(function(c){return !c.checkin&&["concluido","pago","aguardando_pagamento"].indexOf(c.status)<0;});
+  var c=pre||null;
+
+  var cc=el("div","card");
+  cc.appendChild(el("h3",null,"1. Qual elevador"));
+  if(!c){
+    if(!pendentes.length){ cc.appendChild(el("p","small","Você não tem visita pendente.")); }
+    pendentes.forEach(function(x){
+      var e=elevador(x.elevadorId), cl=cliente(x.clienteId);
+      var b=el("button","btn sec",((e&&e.predio)||"Prédio")+" · "+((e&&e.identificacao)||"Elevador"));
+      b.onclick=function(){ go("checkin",x.id); };
+      cc.appendChild(b);
+      if(cl)cc.appendChild(el("div","small",cl.nome));
+    });
+    app.appendChild(cc);
+    return;
+  }
+  var e=elevador(c.elevadorId), cl=cliente(c.clienteId);
+  cc.appendChild(el("div",null,((e&&e.predio)||"Prédio")+" · "+((e&&e.identificacao)||"Elevador")));
+  if(cl)cc.appendChild(el("div","small",cl.nome));
+  if(e&&e.endereco)cc.appendChild(el("div","small",e.endereco));
+  var tr=el("button","btn gray sm","Trocar"); tr.style.marginTop="10px";
+  tr.onclick=function(){ go("checkin"); };
+  cc.appendChild(tr);
+  app.appendChild(cc);
+
+  if(c.checkin){
+    app.appendChild(el("div","banner ok","Check-in já feito em "+dt(c.checkin.ts)+"."));
+    var vb=el("button","btn","Abrir o chamado");
+    vb.onclick=function(){ go("chamado",c.id); };
+    app.appendChild(vb);
+    return;
+  }
+
+  var codeOk=false, pos=null, dd=null;
+  var kc=el("div","card");
+  kc.appendChild(el("h3",null,"2. Código do elevador"));
+  kc.appendChild(el("p","small","Está na etiqueta colada no elevador. Dá pra escanear com a câmera do celular ou digitar."));
+  var param=new URLSearchParams(location.search).get("e")||"";
+  var ci=campo(kc,"Código","text",param.toUpperCase(),"XXXXXX");
+  ci.style.textTransform="uppercase";
+  var kmsg=el("div"); kc.appendChild(kmsg);
+  app.appendChild(kc);
+
+  var gc=el("div","card");
+  gc.appendChild(el("h3",null,"3. Localização"));
+  gc.appendChild(el("p","small","O app registra onde você está na hora do check-in. Isso fica no histórico do chamado."));
+  var gmsg=el("div"); gc.appendChild(gmsg);
+  var gb=el("button","btn sec","Pegar minha localização");
+  gb.onclick=function(){
+    gmsg.innerHTML=""; gmsg.appendChild(el("div","banner info","Buscando o GPS…"));
+    gps().then(function(p){
+      gmsg.innerHTML="";
+      if(!p){ gmsg.appendChild(el("div","banner bad","Não consegui o GPS. Libere a localização no navegador.")); return; }
+      pos=p;
+      if(e&&e.lat!=null&&e.lng!=null){
+        dd=dist(e.lat,e.lng,p.lat,p.lng);
+        if(dd!=null&&dd<=250) gmsg.appendChild(el("div","banner ok","Você está a "+dd+" m do prédio cadastrado."));
+        else gmsg.appendChild(el("div","banner warn","Você está a "+dd+" m do endereço cadastrado. O check-in vai registrar essa distância."));
+      } else {
+        gmsg.appendChild(el("div","banner ok","Localização pega. O prédio ainda não tem coordenada salva, então não dá pra comparar."));
+      }
+      pinta();
+    });
+  };
+  gc.appendChild(gb);
+  app.appendChild(gc);
+
+  var fb=el("button","btn","Fazer check-in e começar a contar o tempo");
+  function pinta(){
+    var cod=(ci.value||"").trim().toUpperCase();
+    codeOk = !!(e&&e.codigo) ? (cod===String(e.codigo).toUpperCase()) : cod.length>=4;
+    kmsg.innerHTML="";
+    if(cod){
+      kmsg.appendChild(el("div","banner "+(codeOk?"ok":"bad"), codeOk?"Código confere com este elevador.":"Código diferente do cadastrado."));
+    }
+    fb.disabled = !(codeOk&&pos);
+    fb.textContent = codeOk&&pos ? "Fazer check-in e começar a contar o tempo"
+      : (!codeOk ? "Informe o código do elevador" : "Pegue a localização");
+  }
+  ci.oninput=pinta;
+  fb.onclick=function(){
+    var ts=Date.now();
+    upChamado(c,{checkin:{ts:ts,lat:pos.lat,lng:pos.lng,acc:pos.acc,dist:dd,codigo:(ci.value||"").trim().toUpperCase()},status:"em_atendimento"},
+      "Check-in no local"+(dd!=null?" · "+dd+" m do prédio":"")+" · código confirmado");
+    toast("Check-in feito. Tempo contando.");
+    go("chamado",c.id);
+  };
+  app.appendChild(fb);
+  pinta();
+}
+
+/* ---------------- novo chamado ---------------- */
+function telaNovo(app){
+  pintaTopo("Abrir chamado",null,"chamados");
+  var evs=meusElevadores();
+  if(!evs.length){
+    vazio(app,papel()==="empresa"?"Cadastre um prédio e um elevador primeiro.":"Nenhum elevador ligado à sua conta ainda.");
+    if(papel()==="empresa"){ var b0=el("button","btn","Cadastrar prédio"); b0.onclick=function(){go("predios");}; app.appendChild(b0); }
+    return;
+  }
+  var c=el("div","card");
+  var opts=evs.map(function(e){
+    var cl=cliente(e.clienteId);
+    return {v:e.id,l:((cl?cl.nome+" · ":"")+(e.predio||"")+" · "+(e.identificacao||"Elevador"))};
+  });
+  var ev=selec(c,"Elevador",opts,opts[0].v);
+  var tp=selec(c,"Tipo",[{v:"corretivo",l:"Problema / quebrou"},{v:"preventivo",l:"Manutenção preventiva"}],"corretivo");
+  var ds=campo(c,"O que está acontecendo","area","","Conte o que notou: ruído, porta, parou no andar…");
+  var ug=selec(c,"Urgência",[{v:"normal",l:"Normal"},{v:"urgente",l:"Urgente — pessoa presa ou elevador parado"}],"normal");
+  var b=el("button","btn","Abrir chamado");
+  b.onclick=function(){
+    var e=elevador(ev.value);
+    if(!e)return toast("Escolha o elevador.");
+    var id=uuid();
+    var o={id:id, elevadorId:e.id, clienteId:e.clienteId, tipo:tp.value, descricao:ds.value.trim(),
+      urgencia:ug.value, status:"aberto", tecnicoUid:e.tecnicoUid||null, abertoPor:uid, criado:Date.now(),
+      fotos:[], pecas:[], hist:[{ts:Date.now(),quem:papel(),texto:"Chamado aberto"}]};
+    if(o.tecnicoUid){ o.status="designado"; o.hist.push({ts:Date.now(),quem:"empresa",texto:"Técnico responsável designado automaticamente"}); }
+    b.disabled=true;
+    D.chamados.push(o);
+    save("chamados/"+id,o).then(function(){ toast("Chamado aberto!"); go("chamado",id); })
+      .catch(function(){ b.disabled=false; });
+  };
+  c.appendChild(b);
+  app.appendChild(c);
+  var tel=(D.config&&D.config.sos)||(D.config&&D.config.telefone)||"";
+  if(tel){
+    var sc=el("div","card");
+    sc.appendChild(el("h3",null,"Emergência"));
+    sc.appendChild(el("p","small","Pessoa presa no elevador? Ligue agora."));
+    var a=el("a","btn danger","SOS — ligar para a empresa");
+    a.href="tel:"+tel.replace(/[^\d+]/g,""); sc.appendChild(a);
+    app.appendChild(sc);
+  }
+}
+
+/* ---------------- prédios e elevadores (empresa) ---------------- */
+function telaPredios(app){
+  pintaTopo("Equipamentos", D.elevadores.length+" elevador"+(D.elevadores.length===1?"":"es")+" em "+D.clientes.length+" cliente"+(D.clientes.length===1?"":"s"));
+  if(!D.clientes.length){
+    var z=el("div","card");
+    z.appendChild(el("h2",null,"Cadastre o primeiro pr\u00e9dio"));
+    z.appendChild(el("p","muted","Comece pelo cliente (o condom\u00ednio ou a empresa dona do pr\u00e9dio). Depois voc\u00ea adiciona os elevadores dele."));
+    var zb=el("button","btn","Cadastrar cliente");
+    zb.onclick=function(){ sheetCliente(null); };
+    z.appendChild(zb);
+    app.appendChild(z);
+  }
+  D.clientes.forEach(function(cl){
+    var evs=D.elevadores.filter(function(e){return e.clienteId===cl.id;});
+    var c=el("div","card");
+    var sp=el("div","spread");
+    var w=el("div","grow");
+    w.appendChild(el("div",null,cl.nome));
+    w.appendChild(el("div","small",[cl.cnpj,cl.endereco].filter(Boolean).join(" · ")));
+    sp.appendChild(w);
+    sp.appendChild(el("span","pill cinza",evs.length+" elev."));
+    c.appendChild(sp);
+    evs.forEach(function(e){
+      var m=manutStatus(e);
+      var b=el("button","card tight");
+      b.style.margin="9px 0 0";
+      var r=el("div","spread");
+      var ww=el("div","grow");
+      ww.appendChild(el("div",null,(e.predio||"Prédio")+" · "+(e.identificacao||"Elevador")));
+      ww.appendChild(el("div","small",[e.fabricante,e.modelo,e.codigo].filter(Boolean).join(" · ")));
+      r.appendChild(ww); r.appendChild(stPillM(m));
+      b.appendChild(r);
+      b.onclick=function(){ go("elevador",e.id); };
+      c.appendChild(b);
+    });
+    var ab=el("button","btn sec","Adicionar elevador");
+    ab.onclick=function(){ sheetElevador(cl.id,null); };
+    c.appendChild(ab);
+    var eb=el("button","btn gray sm","Editar cliente"); eb.style.marginTop="9px";
+    eb.onclick=function(){ sheetCliente(cl); };
+    c.appendChild(eb);
+    app.appendChild(c);
+  });
+  var b=el("button","btn","Cadastrar novo cliente");
+  b.onclick=function(){ sheetCliente(null); };
+  app.appendChild(b);
+}
+function sheetCliente(cl){
+  sheet(cl?"Editar cliente":"Novo cliente",function(p,close){
+    var nm=campo(p,"Nome do cliente / condom\u00ednio","text",cl?cl.nome:"","Condom\u00ednio Edif\u00edcio X");
+    var cn=campo(p,"CNPJ","text",cl?cl.cnpj:"","00.000.000/0000-00");
+    var en=campo(p,"Endere\u00e7o (rua e n\u00famero)","text",cl?cl.endereco:"","Av. Ipanema, 703");
+    var te=campo(p,"Telefone do respons\u00e1vel","tel",cl?cl.telefone:"","(11) 90000-0000");
+    var m=mais(p,"Mais dados (opcional)");
+    var ce=campo(m,"CEP","text",cl?cl.cep:"","00000-000");
+    var ba=campo(m,"Bairro e cidade","text",cl?cl.bairro:"","Veleiros, S\u00e3o Paulo");
+    var rs=campo(m,"Respons\u00e1vel (s\u00edndico/zelador)","text",cl?cl.responsavel:"","Nome");
+    var gt=selec(m,"Garantia do contrato",[{v:"nenhuma",l:"Sem garantia"},{v:"pecas",l:"S\u00f3 pe\u00e7as"},{v:"mao",l:"S\u00f3 m\u00e3o de obra"},{v:"total",l:"Total"}],cl?cl.garantiaTipo:"nenhuma");
+    var gp=campo(m,"Pe\u00e7as cobertas pela garantia","area",cl?cl.garantiaPecas:"","Liste as pe\u00e7as que o contrato cobre");
+    var b=el("button","btn","Salvar");
+    b.onclick=function(){
+      if(!nm.value.trim())return toast("Escreva o nome do cliente.");
+      var id=cl?cl.id:uuid();
+      var o={id:id,nome:nm.value.trim(),cnpj:cn.value.trim(),endereco:en.value.trim(),cep:ce.value.trim(),
+        bairro:ba.value.trim(),responsavel:rs.value.trim(),telefone:te.value.trim(),
+        garantiaTipo:gt.value,garantiaPecas:gp.value.trim(),criado:cl?cl.criado:Date.now()};
+      var i=D.clientes.findIndex(function(x){return x.id===id;});
+      if(i>=0)D.clientes[i]=o; else D.clientes.push(o);
+      close(); save("clientes/"+id,o); render(); toast("Cliente salvo");
+    };
+    p.appendChild(b);
+  });
+}
+function sheetElevador(clienteId,e){
+  sheet(e?"Editar elevador":"Novo elevador",function(p,close){
+    var cl=cliente(clienteId)||{};
+    var pr=campo(p,"Pr\u00e9dio / bloco","text",e?e.predio:(cl.nome||""),"Bloco A");
+    var idn=campo(p,"Identifica\u00e7\u00e3o","text",e?e.identificacao:"","Elevador social 1");
+    var co=campo(p,"C\u00f3digo da etiqueta","text",e?e.codigo:codigoNovo(),"");
+    co.style.textTransform="uppercase";
+    var ts=tecnicos();
+    var topts=[{v:"",l:"Nenhum"}].concat(ts.map(function(t){return {v:t.id,l:nome(t)};}));
+    var te=selec(p,"T\u00e9cnico respons\u00e1vel fixo",topts,e?(e.tecnicoUid||""):"");
+    var um=campo(p,"Data da \u00faltima manuten\u00e7\u00e3o","date",e?e.ultimaManut:"","");
+
+    var latv=e?e.lat:null, lngv=e?e.lng:null;
+    var gmsg=el("div"); p.appendChild(gmsg);
+    function pintaG(){
+      gmsg.innerHTML="";
+      gmsg.appendChild(el("div","banner "+(latv!=null?"ok":"warn"),
+        latv!=null?"Localiza\u00e7\u00e3o salva. O check-in vai medir a dist\u00e2ncia at\u00e9 aqui."
+                  :"Sem localiza\u00e7\u00e3o salva. Estando no pr\u00e9dio, toque abaixo para gravar."));
+    }
+    pintaG();
+    var gb=el("button","btn sec","Gravar a localiza\u00e7\u00e3o deste pr\u00e9dio");
+    gb.onclick=function(){
+      toast("Buscando GPS\u2026");
+      gps().then(function(x){ if(!x)return toast("N\u00e3o consegui o GPS."); latv=x.lat; lngv=x.lng; pintaG(); toast("Localiza\u00e7\u00e3o gravada"); });
+    };
+    p.appendChild(gb);
+
+    var m=mais(p,"Equipamento, endere\u00e7o e garantia (opcional)");
+    var fa=campo(m,"Fabricante","text",e?e.fabricante:"","Atlas, Otis, Thyssen\u2026");
+    var mo=campo(m,"Modelo","text",e?e.modelo:"","Modelo / capacidade");
+    var ca=campo(m,"N\u00ba de paradas / andares","text",e?e.paradas:"","");
+    var en=campo(m,"Endere\u00e7o","text",e?e.endereco:(cl.endereco||""),"Rua e n\u00famero");
+    var ce=campo(m,"CEP","text",e?e.cep:(cl.cep||""),"00000-000");
+    var vm=campo(m,"Validade da manuten\u00e7\u00e3o (meses)","number",e?(e.validadeMeses||12):12,"12");
+    var av=campo(m,"Avisar quantos dias antes","number",e?(e.avisoDias||30):30,"30");
+    var gt=selec(m,"Garantia",[{v:"",l:"Usar a do contrato do cliente"},{v:"nenhuma",l:"Sem garantia"},{v:"pecas",l:"S\u00f3 pe\u00e7as"},{v:"mao",l:"S\u00f3 m\u00e3o de obra"},{v:"total",l:"Total"}],e?(e.garantiaTipo||""):"");
+    var gp=campo(m,"Pe\u00e7as em garantia (deste elevador)","area",e?e.garantiaPecas:"","");
+
+    var b=el("button","btn","Salvar elevador");
+    b.onclick=function(){
+      if(!idn.value.trim())return toast("D\u00ea um nome ao elevador.");
+      var id=e?e.id:uuid();
+      var o={id:id,clienteId:clienteId,predio:pr.value.trim(),identificacao:idn.value.trim(),
+        endereco:en.value.trim(),cep:ce.value.trim(),fabricante:fa.value.trim(),modelo:mo.value.trim(),
+        paradas:ca.value.trim(),codigo:(co.value||"").trim().toUpperCase(),tecnicoUid:te.value||null,
+        validadeMeses:Number(vm.value)||12,ultimaManut:um.value||null,avisoDias:Number(av.value)||30,
+        garantiaTipo:gt.value||(cl.garantiaTipo||"nenhuma"),garantiaPecas:gp.value.trim()||(cl.garantiaPecas||""),
+        lat:latv,lng:lngv,criado:e?e.criado:Date.now()};
+      var i=D.elevadores.findIndex(function(x){return x.id===id;});
+      if(i>=0)D.elevadores[i]=o; else D.elevadores.push(o);
+      close(); save("elevadores/"+id,o); render(); toast("Elevador salvo");
+    };
+    p.appendChild(b);
+  });
+}
+function telaElevador(app){
+  var e=elevador(route.id);
+  if(!e){ vazio(app,"Elevador não encontrado."); return; }
+  var cl=cliente(e.clienteId), m=manutStatus(e), t=usuario(e.tecnicoUid), p=papel();
+  pintaTopo(e.predio||"Elevador", e.identificacao||"", p==="empresa"?"predios":"meus");
+  var c=el("div","card");
+  var sp=el("div","spread");
+  var w=el("div","grow");
+  w.appendChild(el("div",null,e.identificacao||"Elevador"));
+  w.appendChild(el("div","small",cl?cl.nome:""));
+  sp.appendChild(w); sp.appendChild(stPillM(m));
+  c.appendChild(sp);
+  function kv(k,v){ if(!v&&v!==0)return; var r=el("div","kv"); r.appendChild(el("b",null,k)); r.appendChild(el("span",null,String(v))); c.appendChild(r); }
+  kv("Endereço",[e.endereco,e.cep].filter(Boolean).join(" · "));
+  kv("Equipamento",[e.fabricante,e.modelo].filter(Boolean).join(" "));
+  kv("Paradas",e.paradas);
+  kv("Código da etiqueta",e.codigo);
+  kv("Técnico responsável",t?nome(t):"—");
+  kv("Última manutenção",e.ultimaManut?dia(e.ultimaManut):"—");
+  kv("Validade",(e.validadeMeses||12)+" meses");
+  kv("Próxima",m.prox?dia(m.prox):"—");
+  kv("Aviso",(e.avisoDias||30)+" dias antes");
+  kv("Garantia",({total:"Total",pecas:"Só peças",mao:"Só mão de obra",nenhuma:"Sem garantia"})[e.garantiaTipo]||"—");
+  kv("Peças em garantia",e.garantiaPecas);
+  if(e.endereco){
+    var a=el("a","btn sec","Abrir no mapa");
+    a.href="https://maps.google.com/?q="+encodeURIComponent(e.endereco+" "+(e.cep||""));
+    a.target="_blank"; a.rel="noopener"; c.appendChild(a);
+  }
+  app.appendChild(c);
+
+  if(p==="empresa"){
+    var ec=el("div","card");
+    ec.appendChild(el("h3",null,"Etiqueta do elevador"));
+    ec.appendChild(el("p","small","Cole esta etiqueta dentro do elevador. O técnico escaneia ou digita o código no check-in."));
+    var cd=el("div","codigo",e.codigo||"—"); ec.appendChild(cd);
+    var pb=el("button","btn sec","Imprimir etiqueta");
+    pb.onclick=function(){ imprimirEtiqueta(e,cl); };
+    ec.appendChild(pb);
+    var eb=el("button","btn gray","Editar elevador");
+    eb.onclick=function(){ sheetElevador(e.clienteId,e); };
+    ec.appendChild(eb);
+    app.appendChild(ec);
+  }
+
+  var cs=D.chamados.filter(function(x){return x.elevadorId===e.id;}).sort(function(a,b){return (b.criado||0)-(a.criado||0);});
+  app.appendChild(el("h2",null,"Chamados deste elevador"));
+  if(!cs.length) vazio(app,"Nenhum chamado ainda.");
+  cs.slice(0,15).forEach(function(x){ app.appendChild(cardChamado(x)); });
+
+  if(p==="empresa"||p==="cliente"){
+    var nb=el("button","btn","Abrir chamado para este elevador");
+    nb.onclick=function(){ go("novo"); };
+    app.appendChild(nb);
+  }
+}
+function imprimirEtiqueta(e,cl){
+  var url=location.origin+location.pathname+"?e="+encodeURIComponent(e.codigo||"");
+  var w=window.open("","_blank");
+  if(!w)return toast("Libere os pop-ups para imprimir.");
+  var html='<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><title>Etiqueta</title>'+
+  '<style>body{font:16px -apple-system,Arial,sans-serif;text-align:center;padding:30px}'+
+  '.b{border:3px solid #000;border-radius:18px;padding:26px;max-width:420px;margin:0 auto}'+
+  '.c{font-family:monospace;font-size:52px;font-weight:700;letter-spacing:8px;margin:14px 0}'+
+  'small{color:#444;display:block;margin-top:10px;line-height:1.4}</style></head><body>'+
+  '<div class="b"><div style="font-weight:700;font-size:18px">'+esc((D.config&&D.config.empresa)||"Manutenção de elevadores")+'</div>'+
+  '<div style="margin-top:6px">'+esc(cl?cl.nome:"")+'</div>'+
+  '<div style="font-size:14px;color:#444">'+esc((e.predio||"")+" · "+(e.identificacao||""))+'</div>'+
+  '<div class="c">'+esc(e.codigo||"")+'</div>'+
+  '<div id="qr"></div>'+
+  '<small>Técnico: escaneie o código ou digite no app para fazer o check-in.<br>'+esc(url)+'</small>'+
+  ((D.config&&D.config.sos)?('<small><b>Emergência: '+esc(D.config.sos)+'</b></small>'):"")+
+  '</div><scr'+'ipt src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js" onload="try{QRCode.toCanvas(document.createElement(\'canvas\'),'+JSON.stringify(url)+',{width:190,margin:1},function(err,cv){if(!err)document.getElementById(\'qr\').appendChild(cv);})}catch(e){}" onerror=""></scr'+'ipt>'+
+  '</body></html>';
+  w.document.write(html); w.document.close();
+  setTimeout(function(){ try{w.print();}catch(e){} },1200);
+}
+
+/* ---------------- equipe (empresa) ---------------- */
+function telaEquipe(app){
+  pintaTopo("Equipe e acessos");
+  var pend=D.usuarios.filter(function(u){return !u.aprovado;});
+  var tec=D.usuarios.filter(function(u){return u.aprovado&&u.perfil==="tecnico";});
+  var cli=D.usuarios.filter(function(u){return u.aprovado&&u.perfil==="cliente";});
+
+  var ic=el("div","card");
+  ic.appendChild(el("h3",null,"Como liberar acesso"));
+  ic.appendChild(el("p","small","Mande o link deste app para o técnico ou para o síndico. Ele entra, preenche o cadastro e aparece aqui para você aprovar. Ele entra com a conta Google dele, sem precisar de mais nada."));
+  var sb=el("button","btn sec","Copiar o link do app");
+  sb.onclick=function(){ copiar(location.origin+location.pathname); };
+  ic.appendChild(sb);
+  app.appendChild(ic);
+
+  app.appendChild(el("h2",null,"Esperando aprovação"));
+  if(!pend.length) vazio(app,"Nenhum cadastro pendente.",'<path d="M4 12l5 5L20 6"/>');
+  pend.forEach(function(u){ app.appendChild(cardUsuario(u,true)); });
+
+  app.appendChild(el("h2",null,"Técnicos"));
+  if(!tec.length) vazio(app,"Nenhum técnico aprovado.");
+  tec.forEach(function(u){ app.appendChild(cardUsuario(u,false)); });
+
+  app.appendChild(el("h2",null,"Clientes com acesso"));
+  if(!cli.length) vazio(app,"Nenhum cliente com acesso.");
+  cli.forEach(function(u){ app.appendChild(cardUsuario(u,false)); });
+}
+function cardUsuario(u,pendente){
+  var c=el("div","card");
+  var sp=el("div","spread");
+  var w=el("div","grow");
+  w.appendChild(el("div",null,nome(u)));
+  var sub=[u.perfil==="tecnico"?"Técnico":"Cliente"];
+  if(u.cpf)sub.push("CPF "+u.cpf);
+  if(u.cnpj)sub.push("CNPJ "+u.cnpj);
+  if(u.telefone)sub.push(u.telefone);
+  w.appendChild(el("div","small",sub.join(" · ")));
+  if(u.razao)w.appendChild(el("div","small",u.razao));
+  if(u.pix)w.appendChild(el("div","small","Pix: "+u.pix));
+  sp.appendChild(w);
+  sp.appendChild(el("span","pill "+(pendente?"amarelo":"verde"),pendente?"Pendente":"Ativo"));
+  c.appendChild(sp);
+  if(u.perfil==="cliente"){
+    var ids=u.clienteIds||[];
+    var nomes=ids.map(function(i){var x=cliente(i);return x?x.nome:null;}).filter(Boolean);
+    c.appendChild(el("div","small",nomes.length?("Prédios: "+nomes.join(", ")):"Nenhum prédio ligado ainda"));
+    var lb=el("button","btn sm sec","Ligar aos prédios"); lb.style.marginTop="9px";
+    lb.onclick=function(){ sheetLigarCliente(u); };
+    c.appendChild(lb);
+  }
+  if(pendente){
+    var ab=el("button","btn ok","Aprovar");
+    ab.onclick=function(){
+      var o=Object.assign({},u,{aprovado:true,aprovadoEm:Date.now()});
+      var i=D.usuarios.findIndex(function(x){return x.id===u.id;}); if(i>=0)D.usuarios[i]=o;
+      save("usuarios/"+u.id,o); render(); toast("Aprovado");
+      if(o.perfil==="cliente") sheetLigarCliente(o);
+    };
+    c.appendChild(ab);
+  } else {
+    var rb=el("button","btn gray sm","Suspender acesso"); rb.style.marginTop="9px";
+    rb.onclick=function(){
+      var o=Object.assign({},u,{aprovado:false});
+      var i=D.usuarios.findIndex(function(x){return x.id===u.id;}); if(i>=0)D.usuarios[i]=o;
+      save("usuarios/"+u.id,o); render(); toast("Acesso suspenso");
+    };
+    c.appendChild(rb);
+  }
+  return c;
+}
+function sheetLigarCliente(u){
+  sheet("Prédios de "+nome(u),function(p,close){
+    if(!D.clientes.length){ p.appendChild(el("p","muted","Cadastre um cliente primeiro.")); return; }
+    p.appendChild(el("p","muted","Marque quais prédios essa pessoa acompanha. Ela pode ter vários CNPJs."));
+    var sel=(u.clienteIds||[]).slice();
+    D.clientes.forEach(function(cl){
+      var on=sel.indexOf(cl.id)>=0;
+      var b=el("button","btn "+(on?"ok":"sec"),(on?"✓ ":"")+cl.nome+(cl.cnpj?" · "+cl.cnpj:""));
+      b.onclick=function(){
+        var i=sel.indexOf(cl.id);
+        if(i>=0)sel.splice(i,1); else sel.push(cl.id);
+        var o=Object.assign({},u,{clienteIds:sel});
+        var j=D.usuarios.findIndex(function(x){return x.id===u.id;}); if(j>=0)D.usuarios[j]=o;
+        save("usuarios/"+u.id,o);
+        close(); render(); sheetLigarCliente(o);
+      };
+      p.appendChild(b);
+    });
+  });
+}
+
+/* ---------------- ajustes (empresa) ---------------- */
+function telaConfig(app){
+  pintaTopo("Ajustes da empresa");
+  var cf=D.config||{};
+  var c=el("div","card");
+  var nm=campo(c,"Nome da empresa","text",cf.empresa||"","Minha Elevadores Ltda");
+  var cn=campo(c,"CNPJ","text",cf.cnpj||"","");
+  var te=campo(c,"Telefone de atendimento","tel",cf.telefone||"","(11) 0000-0000");
+  var so=campo(c,"Telefone de emergência (SOS)","tel",cf.sos||"","(11) 90000-0000");
+  var px=campo(c,"Chave Pix da empresa","text",cf.pix||"","CNPJ, telefone ou chave");
+  var b=el("button","btn","Salvar");
+  b.onclick=function(){
+    var o={empresa:nm.value.trim(),cnpj:cn.value.trim(),telefone:te.value.trim(),sos:so.value.trim(),pix:px.value.trim(),atualizado:Date.now()};
+    D.config=o; save("config/app",o); render(); toast("Salvo");
+  };
+  c.appendChild(b);
+  app.appendChild(c);
+
+  var ac=el("div","card");
+  ac.appendChild(el("h3",null,"Resumo"));
+  [["Clientes",D.clientes.length],["Elevadores",D.elevadores.length],["Chamados",D.chamados.length],
+   ["Técnicos",tecnicos().length],["Pessoas com acesso",D.usuarios.filter(function(u){return u.aprovado;}).length]]
+  .forEach(function(x){ var r=el("div","kv"); r.appendChild(el("b",null,x[0])); r.appendChild(el("span",null,String(x[1]))); ac.appendChild(r); });
+  app.appendChild(ac);
+
+  var hc=el("div","card");
+  hc.appendChild(el("h3",null,"Instalar no celular"));
+  hc.appendChild(el("p","small","No iPhone: abra o link no Safari, toque em Compartilhar e em “Adicionar à Tela de Início”. No Android: menu do Chrome e “Adicionar à tela inicial”."));
+  var cb=el("button","btn sec","Copiar o link do app");
+  cb.onclick=function(){ copiar(location.origin+location.pathname); };
+  hc.appendChild(cb);
+  app.appendChild(hc);
+  botaoSair(app);
+}
+
+/* ---------------- agenda do técnico ---------------- */
+function telaAgenda(app){
+  pintaTopo("Minha agenda");
+  var cs=meusChamados().filter(function(c){return c.agendamento&&["concluido","pago"].indexOf(c.status)<0;})
+    .sort(function(a,b){return a.agendamento-b.agendamento;});
+  var av=D.elevadores.filter(function(e){return e.tecnicoUid===uid;})
+    .map(function(e){return {e:e,m:manutStatus(e)};})
+    .filter(function(x){return x.m.d!=null&&x.m.d<=Number(x.e.avisoDias||30);})
+    .sort(function(a,b){return a.m.d-b.m.d;});
+  app.appendChild(el("h2",null,"Visitas marcadas"));
+  if(!cs.length) vazio(app,"Nenhuma visita marcada.",'<rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M8 3v4m8-4v4"/>');
+  cs.forEach(function(c){ app.appendChild(cardChamado(c)); });
+  app.appendChild(el("h2",null,"Preventivas chegando"));
+  if(!av.length) vazio(app,"Nada perto de vencer nos seus elevadores.");
+  av.forEach(function(x){
+    var cl=cliente(x.e.clienteId);
+    var b=el("button","card tight");
+    var r=el("div","spread");
+    var w=el("div","grow");
+    w.appendChild(el("div",null,(x.e.predio||"Prédio")+" · "+(x.e.identificacao||"Elevador")));
+    w.appendChild(el("div","small",cl?cl.nome:""));
+    r.appendChild(w); r.appendChild(stPillM(x.m));
+    b.appendChild(r);
+    b.onclick=function(){ go("elevador",x.e.id); };
+    app.appendChild(b);
+  });
+}
+
+/* ---------------- elevadores do cliente ---------------- */
+function telaMeus(app){
+  var ptec = papel()==="tecnico";
+  pintaTopo(ptec?"Sob minha responsabilidade":"Meus elevadores", ptec?"Elevadores que a empresa direcionou para voc\u00ea":null);
+  var evs=meusElevadores();
+  var av=aVencer();
+  if(av.length){
+    var bn=el("div","banner warn");
+    bn.textContent=av.length+" manutenção"+(av.length>1?"ões":"")+" para agendar com a empresa";
+    app.appendChild(bn);
+  }
+  if(!evs.length){
+    vazio(app, ptec
+      ? "Nenhum elevador direcionado para voc\u00ea ainda. A empresa \u00e9 quem define de quais elevadores voc\u00ea cuida."
+      : "Nenhum elevador ligado \u00e0 sua conta ainda. Pe\u00e7a para a empresa ligar os seus pr\u00e9dios ao seu acesso.",
+      '<rect x="6" y="3.5" width="12" height="17" rx="2"/>');
+    return;
+  }
+  var porCliente={};
+  evs.forEach(function(e){ (porCliente[e.clienteId]=porCliente[e.clienteId]||[]).push(e); });
+  Object.keys(porCliente).forEach(function(cid){
+    var cl=cliente(cid);
+    app.appendChild(el("h2",null,cl?cl.nome:"Prédio"));
+    if(cl&&cl.cnpj) app.appendChild(el("div","small","CNPJ "+cl.cnpj));
+    porCliente[cid].forEach(function(e){
+      var m=manutStatus(e);
+      var abertos=D.chamados.filter(function(c){return c.elevadorId===e.id&&["concluido","pago"].indexOf(c.status)<0;});
+      var b=el("button","card");
+      var r=el("div","spread");
+      var w=el("div","grow");
+      w.appendChild(el("div",null,(e.predio||"Prédio")+" · "+(e.identificacao||"Elevador")));
+      w.appendChild(el("div","small",[e.fabricante,e.modelo].filter(Boolean).join(" ")));
+      r.appendChild(w); r.appendChild(stPillM(m));
+      b.appendChild(r);
+      if(abertos.length){
+        var l=el("div","small",abertos.length+" chamado"+(abertos.length>1?"s":"")+" em andamento");
+        l.style.marginTop="6px"; b.appendChild(l);
+      }
+      b.onclick=function(){ go("elevador",e.id); };
+      app.appendChild(b);
+    });
+  });
+  if(!ptec){
+    var nb=el("button","btn","Abrir um chamado");
+    nb.onclick=function(){ go("novo"); };
+    app.appendChild(nb);
+  }
+}
+
+/* ---------------- perfil ---------------- */
+function telaPerfil(app){
+  pintaTopo("Meu perfil");
+  var u=me||{nome:"Dono da empresa",perfil:"empresa"};
+  var c=el("div","card");
+  c.appendChild(el("h3",null,nome(u)));
+  function kv(k,v){ if(!v)return; var r=el("div","kv"); r.appendChild(el("b",null,k)); r.appendChild(el("span",null,v)); c.appendChild(r); }
+  kv("Perfil",({empresa:"Empresa",tecnico:"Técnico",cliente:"Cliente"})[u.perfil]||u.perfil);
+  kv("Telefone",u.telefone); kv("CPF",u.cpf); kv("CNPJ",u.cnpj); kv("Razão social",u.razao);
+  kv("Chave Pix",u.pix); kv("Banco",u.banco);
+  if(me){
+    var b=el("button","btn sec","Editar meus dados");
+    b.onclick=function(){ sheetMeusDados(); };
+    c.appendChild(b);
+  }
+  app.appendChild(c);
+  var ec=el("div","card");
+  ec.appendChild(el("h3",null,"Empresa"));
+  var cf=D.config||{};
+  if(cf.empresa)ec.appendChild(el("div",null,cf.empresa));
+  if(cf.telefone){ var a=el("a","btn sec","Ligar para a empresa"); a.href="tel:"+cf.telefone.replace(/[^\d+]/g,""); ec.appendChild(a); }
+  if(cf.sos){ var a2=el("a","btn danger","SOS — emergência"); a2.href="tel:"+cf.sos.replace(/[^\d+]/g,""); ec.appendChild(a2); }
+  app.appendChild(ec);
+  botaoSair(app);
+}
+function botaoSair(pai){
+  var c=el("div","card");
+  c.appendChild(el("div","small","Conectado como "+((conta&&conta.email)||"")));
+  var b=el("button","btn gray","Sair da conta");
+  b.onclick=function(){ auth.signOut().then(function(){ location.reload(); }); };
+  c.appendChild(b); pai.appendChild(c);
+}
+function sheetMeusDados(){
+  sheet("Meus dados",function(p,close){
+    var nm=campo(p,"Nome","text",me.nome||"");
+    var te=campo(p,"Telefone","tel",me.telefone||"");
+    var px=campo(p,"Chave Pix","text",me.pix||"");
+    var bc=campo(p,"Banco e conta","text",me.banco||"");
+    var b=el("button","btn","Salvar");
+    b.onclick=function(){
+      var o=Object.assign({},me,{nome:nm.value.trim(),telefone:te.value.trim(),pix:px.value.trim(),banco:bc.value.trim()});
+      me=o;
+      var i=D.usuarios.findIndex(function(x){return x.id===o.id;}); if(i>=0)D.usuarios[i]=o;
+      close(); save("usuarios/"+o.id,o); render(); toast("Salvo");
+    };
+    p.appendChild(b);
+  });
+}
+
+/* ---------------- início ---------------- */
+var tempoLimite=setTimeout(function(){
+  if(!ready.usuarios) render();
+},11000);
+
+var vigiando=false;
+function vigiar(){
+  if(vigiando)return; vigiando=true;
+  watchDoc("config/app",function(v){
+    D.config=v||D.config||{}; ready.config=true;
+    render();
+  });
+  watchColl("usuarios",function(v){
+    D.usuarios=v; ready.usuarios=true;
+    me=D.usuarios.find(function(u){return u.id===uid;})||null;
+    if(isOwner&&!me){ me={id:uid,nome:(D.config&&D.config.empresa)||"Empresa",perfil:"empresa",aprovado:true}; }
+    render();
+  });
+  watchColl("clientes",function(v){ D.clientes=v; ready.clientes=true; render(); });
+  watchColl("elevadores",function(v){ D.elevadores=v; ready.elevadores=true; render(); });
+  watchColl("chamados",function(v){ D.chamados=v; ready.chamados=true; render(); });
+}
+function boot(){
+  var h=lerHash(); if(h)route=h;
+  try{
+    firebase.initializeApp(FB_CONFIG);
+    db=firebase.firestore();
+    try{ db.settings({ignoreUndefinedProperties:true}); }catch(e){}
+    auth=firebase.auth();
+  }catch(e){
+    $("#app").innerHTML='<div class="card"><h2>Sem conex\u00e3o</h2><p class="muted">N\u00e3o consegui carregar o app. Confira a internet e recarregue a p\u00e1gina.</p></div>';
+    return;
+  }
+  auth.onAuthStateChanged(function(u){
+    carregouAuth=true; conta=u||null;
+    if(!u){ uid=null; render(); return; }
+    uid=u.uid;
+    isOwner = String(u.email||"").toLowerCase()===DONO_EMAIL;
+    render(); vigiar();
+  });
+}
+try{ if("serviceWorker" in navigator) window.addEventListener("load",function(){ navigator.serviceWorker.register("./sw.js").catch(function(){}); }); }catch(e){}
+if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",boot);
+else boot();
+</script>
+</body>
+</html>
