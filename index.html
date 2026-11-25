@@ -195,7 +195,7 @@ details.mais[open]>summary::after{content:" \25B4"}
 "use strict";
 var FB_CONFIG={apiKey:"AIzaSyDbI-3Z_2z1qO0bXBotTxhl_ZzyraKZ2xA",authDomain:"elevador-ok.firebaseapp.com",projectId:"elevador-ok",storageBucket:"elevador-ok.firebasestorage.app",messagingSenderId:"476899431754",appId:"1:476899431754:web:1e0b0df448541fcbbe1db3"};
 var DONO_EMAIL="marciomusicadia@gmail.com";
-var VERSAO="202611251828";
+var VERSAO="202611251830";
 var auth=null, conta=null, carregouAuth=false, fotoCache={};
 /* ---------------- estado ---------------- */
 var db=null, user=null, assets=true, uid=null, isOwner=false, canWrite=true;
@@ -2055,7 +2055,19 @@ function checarVersao(){
   }catch(e){}
 }
 checarVersao(); setInterval(checarVersao,180000);
-document.addEventListener("visibilitychange",function(){ if(!document.hidden) checarVersao(); });
+function recarregarDados(){
+  if(!db||!uid||!vigiando)return;
+  [["chamados","chamados"],["elevadores","elevadores"],["clientes","clientes"],["usuarios","usuarios"]].forEach(function(x){
+    db.collection(x[0]).get({source:"server"}).then(function(r){
+      D[x[1]]=norm(r);
+      if(x[1]==="usuarios"){ var m=D.usuarios.find(function(u){return u.id===uid;}); if(m)me=m; }
+      render();
+    }).catch(function(){});
+  });
+}
+document.addEventListener("visibilitychange",function(){ if(!document.hidden){ checarVersao(); recarregarDados(); } });
+window.addEventListener("focus",recarregarDados);
+window.addEventListener("online",recarregarDados);
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",boot);
 else boot();
 </script>
