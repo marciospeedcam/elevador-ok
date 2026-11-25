@@ -718,6 +718,13 @@ function telaPainel(app){
     b1.style.cursor="pointer"; b1.onclick=function(){go("equipe");};
     app.appendChild(b1);
   }
+  var paraConferir=cs.filter(function(c){return c.cobranca&&c.cobranca.status==="analise";});
+  if(paraConferir.length){
+    var b3=el("div","banner info");
+    b3.textContent=paraConferir.length+" comprovante"+(paraConferir.length>1?"s":"")+" de pagamento para conferir";
+    b3.style.cursor="pointer"; b3.onclick=function(){ go("chamado",paraConferir[0].id); };
+    app.appendChild(b3);
+  }
   if(faltou.length){
     var b2=el("div","banner bad");
     b2.textContent=faltou.length+" visita"+(faltou.length>1?"s":"")+" marcada"+(faltou.length>1?"s":"")+" sem check-in do técnico";
@@ -995,7 +1002,8 @@ function telaChamado(app){
       cw.appendChild(el("div",null,money(c.cobranca.valor)));
       if(c.cobranca.nota)cw.appendChild(el("div","small","Nota: "+c.cobranca.nota));
       r2.appendChild(cw);
-      r2.appendChild(el("span","pill "+(c.cobranca.status==="pago"?"verde":"amarelo"),c.cobranca.status==="pago"?"Pago":"A pagar"));
+      var stc={pago:["Pago","verde"],analise:["Comprovante em an\u00e1lise","azul"]}[c.cobranca.status]||["A pagar","amarelo"];
+      r2.appendChild(el("span","pill "+stc[1],stc[0]));
       cc.appendChild(r2);
       if(c.cobranca.pix){
         var pr=el("div","kv"); pr.appendChild(el("b",null,"Chave Pix")); pr.appendChild(el("span",null,c.cobranca.pix)); cc.appendChild(pr);
@@ -1003,15 +1011,43 @@ function telaChamado(app){
         cp.onclick=function(){ copiar(c.cobranca.pix); };
         cc.appendChild(cp);
       }
-      blocoFotos(cc,c,"comprovante","Comprovante de pagamento",(p==="cliente"||p==="empresa"),true);
-      if(c.cobranca.status!=="pago"&&(p==="cliente"||p==="empresa")){
-        var bp=el("button","btn ok","Marcar como pago");
+      var stCob=c.cobranca.status, temComp=temFoto(c,"comprovante");
+      blocoFotos(cc,c,"comprovante","Comprovante de pagamento",(p==="cliente"&&stCob!=="pago")||p==="empresa",true);
+      if(p==="cliente"&&stCob!=="pago"){
+        if(stCob==="analise"){
+          cc.appendChild(el("div","banner info","Comprovante enviado. A empresa vai conferir e confirmar o pagamento."));
+        } else {
+          if(c.cobranca.recusadoEm) cc.appendChild(el("div","banner bad","A empresa n\u00e3o aceitou o comprovante anterior. Anexe outro e envie de novo."));
+          var be=el("button","btn ok",temComp?"Enviar comprovante para a empresa":"Anexe o comprovante para enviar");
+          be.disabled=!temComp;
+          be.onclick=function(){
+            var o=Object.assign({},c.cobranca,{status:"analise",comprovanteEm:Date.now(),recusadoEm:null});
+            upChamado(c,{cobranca:o},"Cliente enviou o comprovante de pagamento");
+            toast("Comprovante enviado");
+          };
+          cc.appendChild(be);
+        }
+      }
+      if(p==="empresa"&&stCob!=="pago"){
+        if(stCob==="analise") cc.appendChild(el("div","banner info","O cliente enviou o comprovante. Confira e aprove."));
+        var bp=el("button","btn ok",temComp?"Aprovar pagamento":"Aguardando o comprovante do cliente");
+        bp.disabled=!temComp;
         bp.onclick=function(){
           var o=Object.assign({},c.cobranca,{status:"pago",pagoEm:Date.now()});
-          upChamado(c,{cobranca:o,status:"pago"},"Pagamento confirmado");
-          toast("Pagamento registrado");
+          upChamado(c,{cobranca:o,status:"pago"},"Empresa conferiu o comprovante e aprovou o pagamento");
+          toast("Pagamento aprovado");
         };
         cc.appendChild(bp);
+        if(temComp){
+          var bx=el("button","btn danger","Recusar comprovante");
+          bx.onclick=function(){
+            var o=Object.assign({},c.cobranca,{status:"pendente",recusadoEm:Date.now()});
+            var fs=(c.fotos||[]).filter(function(f){return f.tipo!=="comprovante";});
+            upChamado(c,{cobranca:o,fotos:fs,status:"aguardando_pagamento"},"Empresa recusou o comprovante");
+            toast("Comprovante recusado");
+          };
+          cc.appendChild(bx);
+        }
       }
     } else cc.appendChild(el("p","small","Nenhuma cobrança enviada."));
     if(p==="empresa"&&c.checkout){
