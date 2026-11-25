@@ -173,6 +173,12 @@ details.mais>summary::after{content:" \25BE";font-size:11px}
 details.mais[open]>summary::after{content:" \25B4"}
 .maisin{padding:0 12px 12px}
 .maisin label:first-child{margin-top:4px}
+.trilha{display:flex;gap:6px;margin-top:11px}
+.trilha button{flex:1;border:0;border-radius:999px;padding:9px 4px;font:inherit;font-size:12px;font-weight:650;background:var(--neutralsoft);color:var(--ink3)}
+.trilha button.feito{background:var(--oksoft);color:var(--ok)}
+.trilha button.agora{background:var(--brand);color:#fff}
+@media (prefers-color-scheme: dark){.trilha button.agora{color:#0e1116}}
+.trilha button[disabled]{opacity:1}
 .qrbox{display:flex;justify-content:center;padding:12px;background:#fff;border-radius:12px;margin:10px 0}
 .qrbox canvas,.qrbox img{max-width:210px;height:auto;display:block}
 </style>
@@ -189,7 +195,7 @@ details.mais[open]>summary::after{content:" \25B4"}
 "use strict";
 var FB_CONFIG={apiKey:"AIzaSyDbI-3Z_2z1qO0bXBotTxhl_ZzyraKZ2xA",authDomain:"elevador-ok.firebaseapp.com",projectId:"elevador-ok",storageBucket:"elevador-ok.firebasestorage.app",messagingSenderId:"476899431754",appId:"1:476899431754:web:1e0b0df448541fcbbe1db3"};
 var DONO_EMAIL="marciomusicadia@gmail.com";
-var VERSAO="202611251809";
+var VERSAO="202611251821";
 var auth=null, conta=null, carregouAuth=false, fotoCache={};
 /* ---------------- estado ---------------- */
 var db=null, user=null, assets=true, uid=null, isOwner=false, canWrite=true;
@@ -933,7 +939,7 @@ function telaChamado(app){
     if(sub.length)w.appendChild(el("div","small",sub.join(" · ")));
     if(pe.obs)w.appendChild(el("div","small",pe.obs));
     sp2.appendChild(w);
-    var stp={pedida:["Pedida","amarelo"],comprada:["Comprada","azul"],chegou:["Chegou","verde"],instalada:["Instalada","cinza"]}[pe.status||"pedida"];
+    var stp={pedida:["Solicitada","amarelo"],comprada:["Aguardando","azul"],chegou:["Entregue","verde"],instalada:["Instalada","cinza"]}[pe.status||"pedida"];
     sp2.appendChild(el("span","pill "+stp[1],stp[0]));
     box.appendChild(sp2);
     if(pe.fotoId){
@@ -942,8 +948,25 @@ function telaChamado(app){
       im.onclick=function(){ verFoto(pe.fotoId); };
       g.appendChild(im); box.appendChild(g);
     }
+    var ordem=["pedida","comprada","chegou"], atual=ordem.indexOf(pe.status||"pedida");
+    if(pe.status==="instalada") atual=3;
+    var tr=el("div","trilha");
+    [["pedida","Solicitada"],["comprada","Aguardando"],["chegou","Entregue"]].forEach(function(x,k){
+      var tb=el("button",k<atual?"feito":(k===atual?"agora":""),(k<atual?"\u2713 ":"")+x[1]);
+      if(p==="empresa"){
+        tb.onclick=function(){
+          if(x[0]===(pe.status||"pedida"))return;
+          var pecas=(c.pecas||[]).slice();
+          pecas[i]=Object.assign({},pe,{status:x[0]});
+          upChamado(c,{pecas:pecas,status:x[0]==="chegou"?"peca_chegou":"aguardando_peca"},"Pe\u00e7a "+(pe.nome||"")+": "+x[1].toLowerCase());
+          toast("Pe\u00e7a: "+x[1]);
+        };
+      } else tb.disabled=true;
+      tr.appendChild(tb);
+    });
+    box.appendChild(tr);
     if(p==="empresa"){
-      var ab=el("button","btn sm sec","Atualizar peça"); ab.style.marginTop="9px";
+      var ab=el("button","btn sm sec","Previs\u00e3o, valor e garantia"); ab.style.marginTop="9px";
       ab.onclick=function(){ sheetPeca(c,i); };
       box.appendChild(ab);
     }
@@ -1214,7 +1237,7 @@ function sheetPedirPeca(c){
 function sheetPeca(c,i){
   var pe=(c.pecas||[])[i]||{};
   sheet("Peça: "+(pe.nome||""),function(p,close){
-    var st=selec(p,"Status",[{v:"pedida",l:"Pedida"},{v:"comprada",l:"Comprada"},{v:"chegou",l:"Chegou"},{v:"instalada",l:"Instalada"}],pe.status||"pedida");
+    var st=selec(p,"Status",[{v:"pedida",l:"Solicitada"},{v:"comprada",l:"Aguardando"},{v:"chegou",l:"Entregue"},{v:"instalada",l:"Instalada"}],pe.status||"pedida");
     var pv=campo(p,"Previsão de chegada","date",pe.previsao||"");
     var vl=campo(p,"Valor da peça","text",pe.valor!=null?String(pe.valor).replace(".",","):"","0,00");
     var gr=selec(p,"Está na garantia?",[{v:"nao",l:"Não — vai ser cobrada"},{v:"sim",l:"Sim — coberta pelo contrato"}],pe.garantia?"sim":"nao");
@@ -1226,7 +1249,7 @@ function sheetPeca(c,i){
       if(st.value==="chegou")extra.status="peca_chegou";
       else if(st.value==="comprada"||st.value==="pedida")extra.status="aguardando_peca";
       close();
-      var msg="Peça "+(pe.nome||"")+": "+({pedida:"pedida",comprada:"comprada",chegou:"chegou",instalada:"instalada"})[st.value];
+      var msg="Peça "+(pe.nome||"")+": "+({pedida:"solicitada",comprada:"aguardando",chegou:"entregue",instalada:"instalada"})[st.value];
       if(pv.value&&st.value!=="chegou")msg+=" · previsão "+dia(pv.value);
       upChamado(c,extra,msg);
       toast("Salvo");
