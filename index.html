@@ -195,7 +195,7 @@ details.mais[open]>summary::after{content:" \25B4"}
 "use strict";
 var FB_CONFIG={apiKey:"AIzaSyDbI-3Z_2z1qO0bXBotTxhl_ZzyraKZ2xA",authDomain:"elevador-ok.firebaseapp.com",projectId:"elevador-ok",storageBucket:"elevador-ok.firebasestorage.app",messagingSenderId:"476899431754",appId:"1:476899431754:web:1e0b0df448541fcbbe1db3"};
 var DONO_EMAIL="marciomusicadia@gmail.com";
-var VERSAO="202611251821";
+var VERSAO="202611251828";
 var auth=null, conta=null, carregouAuth=false, fotoCache={};
 /* ---------------- estado ---------------- */
 var db=null, user=null, assets=true, uid=null, isOwner=false, canWrite=true;
@@ -1136,6 +1136,20 @@ function telaChamado(app){
     if(c.checkin&&!c.checkout) acao("Encerrar atendimento (check-out)","ok",function(){ sheetCheckout(c); });
     if(c.status==="peca_chegou") acao("Marcar data de retorno","sec",function(){ sheetAgendar(c,true); });
   }
+  if((p==="empresa"||(p==="tecnico"&&c.tecnicoUid===uid))&&c.checkout&&!c.resolvido
+     &&["aguardando_peca","peca_chegou"].indexOf(c.status)>=0&&!temPecaPendente(c)){
+    acao("Marcar servi\u00e7o como conclu\u00eddo","ok",function(){
+      var ft=[];
+      if((c.pecas||[]).length){
+        if(!temFoto(c,"instalada"))ft.push("foto da pe\u00e7a nova instalada");
+        if(!temFoto(c,"retirada"))ft.push("foto da pe\u00e7a retirada");
+      }
+      if(ft.length&&p==="tecnico")return toast("Falta: "+ft.join(" e ")+".");
+      var pecas=(c.pecas||[]).map(function(x){return x.status==="chegou"?Object.assign({},x,{status:"instalada"}):x;});
+      upChamado(c,{status:"concluido",resolvido:true,pecas:pecas},"Servi\u00e7o conclu\u00eddo");
+      toast("Servi\u00e7o conclu\u00eddo");
+    });
+  }
   if(p==="cliente"){
     var tel=(D.config&&D.config.telefone)||"";
     if(tel){ var a2=el("a","btn sec","Ligar para a empresa"); a2.href="tel:"+tel.replace(/[^\d+]/g,""); ac.appendChild(a2); tem=true; }
@@ -1327,14 +1341,15 @@ function sheetCheckout(c){
     if(falta.length){
       p.appendChild(el("div","banner warn","Falta: "+falta.join(", ")+"."));
     }
-    var res=selec(p,"Como terminou",[{v:"resolvido",l:"Resolvido"},{v:"peca",l:"Preciso de peça — volto depois"}],falta.length?"peca":"resolvido");
+    var res=selec(p,"Como terminou",[{v:"resolvido",l:"Resolvido"},{v:"peca",l:"Preciso de peça — volto depois"}],"resolvido");
     var ob=campo(p,"Resumo do que foi feito","area",c.obs||"","");
     var b=el("button","btn ok","Confirmar check-out");
     b.onclick=function(){
       if(falta.length&&res.value==="resolvido")return toast("Tire as fotos que faltam antes de encerrar.");
       var ts=Date.now();
       var min=Math.max(1,Math.round((ts-(c.checkin?c.checkin.ts:ts))/60000));
-      var novo=res.value==="resolvido"?"concluido":"aguardando_peca";
+      var temPecas=(c.pecas||[]).length>0;
+      var novo=res.value==="resolvido"?"concluido":((temPecas&&!temPecaPendente(c))?"peca_chegou":"aguardando_peca");
       var extra={checkout:{ts:ts},tempoMin:min,obs:ob.value,status:novo,resolvido:res.value==="resolvido"};
       if(res.value==="resolvido"){
         var e=elevador(c.elevadorId);
@@ -1345,7 +1360,7 @@ function sheetCheckout(c){
         }
       }
       close();
-      upChamado(c,extra,"Check-out · "+durTexto(min)+" no local · "+(res.value==="resolvido"?"resolvido":"aguardando peça"));
+      upChamado(c,extra,"Check-out · "+durTexto(min)+" no local · "+(res.value==="resolvido"?"resolvido":(novo==="peca_chegou"?"falta concluir":"aguardando peça")));
       toast("Atendimento encerrado");
     };
     p.appendChild(b);
