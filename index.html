@@ -183,6 +183,12 @@ details.mais[open]>summary::after{content:" \25B4"}
 .trilha button.bom{background:var(--ok);color:#fff}
 .trilha button.ruim{background:var(--bad);color:#fff}
 @media (prefers-color-scheme: dark){.trilha button.bom,.trilha button.ruim{color:#0e1116}}
+#alerta{position:fixed;left:12px;right:12px;bottom:calc(18px + env(safe-area-inset-bottom));z-index:80;
+  background:#b32020;color:#fff;border-radius:16px;padding:14px;box-shadow:0 8px 28px rgba(0,0,0,.35);max-width:696px;margin:0 auto}
+#alerta.hide{display:none}
+#alerta .ti{font-weight:700;font-size:16px}
+#alerta .su{font-size:14px;opacity:.92;margin-top:2px}
+#alerta button{margin-top:11px;width:100%;border:0;border-radius:12px;padding:13px;font:inherit;font-weight:700;background:#fff;color:#b32020}
 .qrbox{display:flex;justify-content:center;padding:12px;background:#fff;border-radius:12px;margin:10px 0}
 .qrbox canvas,.qrbox img{max-width:210px;height:auto;display:block}
 </style>
@@ -191,6 +197,7 @@ details.mais[open]>summary::after{content:" \25B4"}
 <header id="hd"><div id="top"><div class="t">Elevador OK</div></div><div id="nav" style="display:none"></div></header>
 <main id="app"><div class="loading"><div class="spin"></div>Carregando…</div></main>
 <div id="sheet" class="hide"><div class="inner"></div></div>
+<div id="alerta" class="hide"></div>
 <div id="toast" class="hide"></div>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
@@ -199,7 +206,7 @@ details.mais[open]>summary::after{content:" \25B4"}
 "use strict";
 var FB_CONFIG={apiKey:"AIzaSyDbI-3Z_2z1qO0bXBotTxhl_ZzyraKZ2xA",authDomain:"elevador-ok.firebaseapp.com",projectId:"elevador-ok",storageBucket:"elevador-ok.firebasestorage.app",messagingSenderId:"476899431754",appId:"1:476899431754:web:1e0b0df448541fcbbe1db3"};
 var DONO_EMAIL="marciomusicadia@gmail.com";
-var VERSAO="202611251832";
+var VERSAO="202611260037";
 var auth=null, conta=null, carregouAuth=false, fotoCache={};
 /* ---------------- estado ---------------- */
 var db=null, user=null, assets=true, uid=null, isOwner=false, canWrite=true;
@@ -526,6 +533,10 @@ function pintaNav(){
       var np=D.usuarios.filter(function(u){return !u.aprovado;}).length;
       if(np) rot=it.l+" ("+np+")";
     }
+    if(it.s==="chamados"&&p==="tecnico"){
+      var nn=novosChamados().length;
+      if(nn){ rot=it.l+" ("+nn+")"; b.classList.add("alerta"); }
+    }
     b.appendChild(el("span",null,rot));
     if(it.s==="equipe"&&p==="empresa"&&D.usuarios.some(function(u){return !u.aprovado;})) b.classList.add("alerta");
     b.onclick=function(){ go(it.s); };
@@ -557,8 +568,65 @@ function trocaPerfil(){
   });
 }
 
+/* ---------------- aviso de chamado novo (tecnico) ---------------- */
+var somH=null, audioCtx=null;
+function destravarSom(){
+  try{
+    if(!audioCtx){ var AC=window.AudioContext||window.webkitAudioContext; if(AC) audioCtx=new AC(); }
+    if(audioCtx&&audioCtx.state==="suspended") audioCtx.resume();
+  }catch(e){}
+}
+document.addEventListener("touchstart",destravarSom,{passive:true});
+document.addEventListener("click",destravarSom);
+function bip(){
+  try{ if(navigator.vibrate) navigator.vibrate([250,120,250]); }catch(e){}
+  if(!audioCtx||audioCtx.state!=="running")return;
+  [0,0.28,0.56].forEach(function(t,i){
+    var o=audioCtx.createOscillator(), g=audioCtx.createGain(), a=audioCtx.currentTime+t;
+    o.type="square"; o.frequency.value=i===1?1175:880;
+    g.gain.setValueAtTime(0.0001,a);
+    g.gain.exponentialRampToValueAtTime(0.35,a+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001,a+0.22);
+    o.connect(g); g.connect(audioCtx.destination); o.start(a); o.stop(a+0.24);
+  });
+}
+function vistos(){ try{ return JSON.parse(localStorage.getItem("elv_vistos_"+uid)||"[]"); }catch(e){ return []; } }
+function marcarVisto(id){
+  var vv=vistos(); if(vv.indexOf(id)>=0)return;
+  vv.push(id); try{ localStorage.setItem("elv_vistos_"+uid,JSON.stringify(vv.slice(-500))); }catch(e){}
+}
+function novosChamados(){
+  if(!uid||!ready.chamados||!me||me.perfil!=="tecnico")return [];
+  var vv=vistos();
+  return D.chamados.filter(function(c){
+    return c.tecnicoUid===uid&&vv.indexOf(c.id)<0&&["concluido","aguardando_pagamento","pago"].indexOf(c.status)<0;
+  });
+}
+function atualizarAlerta(){
+  var box=$("#alerta"), n=novosChamados();
+  if(!n.length){
+    box.classList.add("hide"); box.innerHTML="";
+    if(somH){ clearInterval(somH); somH=null; }
+    try{ if(navigator.clearAppBadge) navigator.clearAppBadge(); }catch(e){}
+    document.title="Elevador OK";
+    return;
+  }
+  var c=n[0], e=elevador(c.elevadorId), cl=cliente(c.clienteId);
+  box.innerHTML="";
+  box.appendChild(el("div","ti",n.length>1?(n.length+" chamados novos para voc\u00ea"):"Chamado novo para voc\u00ea"));
+  box.appendChild(el("div","su",[(cl&&cl.nome),(e&&e.identificacao),c.descricao].filter(Boolean).join(" \u00b7 ").slice(0,120)));
+  var b=el("button",null,"Ver chamado");
+  b.onclick=function(){ destravarSom(); marcarVisto(c.id); go("chamado",c.id); };
+  box.appendChild(b);
+  box.classList.remove("hide");
+  try{ if(navigator.setAppBadge) navigator.setAppBadge(n.length); }catch(e){}
+  document.title="("+n.length+") Elevador OK";
+  if(!somH){ bip(); somH=setInterval(bip,2600); }
+}
+
 /* ---------------- render principal ---------------- */
-function render(){
+function render(){ renderTela(); try{ atualizarAlerta(); }catch(e){} }
+function renderTela(){
   var app=$("#app");
   if(timerH){clearInterval(timerH);timerH=null;}
   if(!carregouAuth){
@@ -832,6 +900,7 @@ function telaChamado(app){
   var c=chamado(route.id);
   if(!c){ vazio(app,"Chamado não encontrado."); return; }
   var e=elevador(c.elevadorId), cl=cliente(c.clienteId), t=usuario(c.tecnicoUid), p=papel();
+  if(c.tecnicoUid===uid) marcarVisto(c.id);
   pintaTopo((e&&e.predio)||"Chamado",(e&&e.identificacao)||"", "chamados");
 
   /* resumo */
